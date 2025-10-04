@@ -114,7 +114,9 @@ export default function CTAFooter() {
             <div className="h-48 w-full rounded-lg overflow-hidden bg-slate-800/50 relative -ml-48 mr-0">
               <div className="absolute inset-0 w-full h-full flex items-center justify-center">
                 <div className="w-48 h-48 scale-175">
-                  <World globeConfig={globeConfig} data={sampleArcs} />
+                  {typeof window !== 'undefined' && (
+                    <World globeConfig={globeConfig} data={sampleArcs} />
+                  )}
                 </div>
               </div>
             </div>
