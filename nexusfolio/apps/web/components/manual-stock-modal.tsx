@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, TrendingUp, Building2 } from "lucide-react";
+import { Search, TrendingUp, Building2, ArrowRight, TrendingDown, DollarSign, BarChart3 } from "lucide-react";
 import Image from "next/image";
 import {
   Dialog,
@@ -64,6 +64,7 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
+  const [showStockDetail, setShowStockDetail] = useState(false);
 
   // Debounced search
   useEffect(() => {
@@ -92,16 +93,32 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
 
   const handleStockSelect = (stock: Stock) => {
     setSelectedStock(stock);
-    // TODO: Add stock to user's portfolio
+    setShowStockDetail(true);
     console.log("Selected stock:", stock);
     console.log("Stock logo URL:", stock.logoUrl);
+  };
+
+  const handleAddToPortfolio = () => {
+    if (selectedStock) {
+      // Use global function if available
+      if ((window as any).addStockToPortfolio) {
+        (window as any).addStockToPortfolio(selectedStock);
+      }
+    }
+    console.log("Adding to portfolio:", selectedStock);
     onClose();
+  };
+
+  const handleBackToSearch = () => {
+    setShowStockDetail(false);
+    setSelectedStock(null);
   };
 
   const handleClose = () => {
     setSearchQuery("");
     setStocks([]);
     setSelectedStock(null);
+    setShowStockDetail(false);
     onClose();
   };
 
@@ -119,17 +136,32 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Search Input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search for stocks (e.g., Apple, AAPL, Tesla)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+          {!showStockDetail ? (
+            <>
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search for stocks (e.g., Apple, AAPL, Tesla)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Back Button */}
+              <button
+                onClick={handleBackToSearch}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                <ArrowRight className="w-4 h-4 rotate-180" />
+                <span className="text-sm">Back to search</span>
+              </button>
+            </>
+          )}
 
           {/* Loading State */}
           {isLoading && (
@@ -139,8 +171,77 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
             </div>
           )}
 
+          {/* Stock Detail Container */}
+          {showStockDetail && selectedStock && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+              {/* Stock Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CompanyLogo 
+                    logoUrl={selectedStock.logoUrl} 
+                    symbol={selectedStock.symbol} 
+                    className="w-12 h-12" 
+                  />
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{selectedStock.symbol}</h3>
+                    <p className="text-sm text-gray-600">{selectedStock.name}</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-400" />
+              </div>
+
+              {/* Stock Info Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <DollarSign className="w-4 h-4 text-green-600" />
+                    <span className="text-xs text-gray-500">Current Price</span>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900">$150.25</p>
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3 text-green-600" />
+                    <span className="text-xs text-green-600">+2.5%</span>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <BarChart3 className="w-4 h-4 text-blue-600" />
+                    <span className="text-xs text-gray-500">Market Cap</span>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900">$2.4T</p>
+                  <span className="text-xs text-gray-500">{selectedStock.exchange}</span>
+                </div>
+              </div>
+
+              {/* Additional Info */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">Exchange</span>
+                  <span className="text-sm font-medium text-gray-900">{selectedStock.exchange}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">Type</span>
+                  <span className="text-sm font-medium text-gray-900">{selectedStock.type}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">Market</span>
+                  <span className="text-sm font-medium text-gray-900">{selectedStock.market}</span>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={handleAddToPortfolio}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+              >
+                Add to Portfolio
+              </button>
+            </div>
+          )}
+
           {/* Search Results */}
-          {!isLoading && stocks.length > 0 && (
+          {!showStockDetail && !isLoading && stocks.length > 0 && (
             <div className="max-h-60 overflow-y-auto space-y-2">
               {stocks.map((stock) => {
                 console.log("Rendering stock:", stock);
@@ -176,7 +277,7 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
           )}
 
           {/* No Results */}
-          {!isLoading && searchQuery && stocks.length === 0 && (
+          {!showStockDetail && !isLoading && searchQuery && stocks.length === 0 && (
             <div className="text-center py-4 text-gray-500">
               <Search className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <p>No stocks found for "{searchQuery}"</p>
@@ -185,7 +286,7 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
           )}
 
           {/* Empty State */}
-          {!searchQuery && (
+          {!showStockDetail && !searchQuery && (
             <div className="text-center py-8 text-gray-500">
               <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-300" />
               <p className="font-medium">Search for stocks</p>

@@ -16,6 +16,8 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.58.0",
     "@workspace/ui": "workspace:*",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.22",
