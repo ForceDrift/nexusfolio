@@ -4,9 +4,9 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@workspace/ui/components/button"
 
 interface User {
-  name: string
-  email: string
-  sub: string
+  name?: string
+  email?: string
+  sub?: string
   picture?: string
 }
 
@@ -51,7 +51,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
             </svg>
           )}
         </div>
-        <span className="text-sm text-gray-600 hidden sm:block">{user.name}</span>
+        <span className="text-sm text-gray-600 hidden sm:block">{user.name || 'User'}</span>
         <svg 
           className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
           fill="none" 
@@ -63,10 +63,10 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
       </button>
 
       {/* Dropdown Menu */}
-      <div className={`absolute right-0 mt-2 w-80 h-80 bg-white shadow-lg border border-gray-200 p-3 z-50 transition-all duration-300 ease-out transform flex flex-col ${
+      <div className={`absolute left-full bottom-0 ml-2 w-64 h-80 bg-white shadow-lg border border-gray-200 p-3 z-50 transition-all duration-300 ease-out transform flex flex-col ${
         isOpen 
-          ? 'opacity-100 scale-100 translate-y-0' 
-          : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
+          ? 'opacity-100 scale-100 translate-x-0' 
+          : 'opacity-0 scale-95 -translate-x-2 pointer-events-none'
       }`}>
         {/* User Info Header */}
         <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
@@ -84,8 +84,8 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-gray-900 text-sm truncate">{user.name}</h3>
-            <p className="text-xs text-gray-500 truncate">{user.email}</p>
+            <h3 className="font-semibold text-gray-900 text-sm truncate">{user.name || 'User'}</h3>
+            <p className="text-xs text-gray-500 truncate">{user.email || 'No email'}</p>
           </div>
         </div>
 
@@ -93,17 +93,17 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         <div className="flex-1 py-3 space-y-2 overflow-y-auto">
           <div>
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">User ID</label>
-            <p className="text-xs text-gray-900 font-mono truncate">{user.sub}</p>
+            <p className="text-xs text-gray-900 font-mono truncate">{user.sub || 'No ID'}</p>
           </div>
           
           <div>
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</label>
-            <p className="text-xs text-gray-900 truncate">{user.email}</p>
+            <p className="text-xs text-gray-900 truncate">{user.email || 'No email'}</p>
           </div>
           
           <div>
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Name</label>
-            <p className="text-xs text-gray-900 truncate">{user.name}</p>
+            <p className="text-xs text-gray-900 truncate">{user.name || 'No name'}</p>
           </div>
         </div>
 
