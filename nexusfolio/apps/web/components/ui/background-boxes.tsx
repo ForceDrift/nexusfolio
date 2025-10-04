@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { motion } from "framer-motion";
 import { cn } from "@workspace/ui/lib/utils";
 
 export const BoxesCore = ({ className, ...rest }: { className?: string }) => {
@@ -21,6 +20,34 @@ export const BoxesCore = ({ className, ...rest }: { className?: string }) => {
     return colors[Math.floor(Math.random() * colors.length)];
   };
 
+  // Function to determine if a box should be part of the N shape
+  const isNShape = (row: number, col: number) => {
+    // Define the N shape pattern - make it more visible
+    const centerRow = Math.floor(rows.length / 2);
+    const centerCol = Math.floor(cols.length / 2);
+    
+    // Vertical line on the left (first column of N)
+    if (col === centerCol - 3 && row >= centerRow - 10 && row <= centerRow + 10) {
+      return true;
+    }
+    
+    // Vertical line on the right (last column of N)
+    if (col === centerCol + 3 && row >= centerRow - 10 && row <= centerRow + 10) {
+      return true;
+    }
+    
+    // Diagonal line (connecting the two vertical lines)
+    const diagonalOffset = row - centerRow;
+    const diagonalCol = centerCol - 3 + Math.floor(diagonalOffset * 0.6);
+    if (col === diagonalCol && 
+        row >= centerRow - 10 && row <= centerRow + 10 &&
+        Math.abs(diagonalOffset) <= 10) {
+      return true;
+    }
+    
+    return false;
+  };
+
   return (
     <div
       style={{
@@ -33,21 +60,27 @@ export const BoxesCore = ({ className, ...rest }: { className?: string }) => {
       {...rest}
     >
       {rows.map((_, i) => (
-        <motion.div
+        <div
           key={`row` + i}
-          className="relative h-8 w-16 border-l border-slate-700"
+          className="relative h-8 w-16 border-l border-black"
         >
           {cols.map((_, j) => (
-            <motion.div
-              whileHover={{
-                backgroundColor: `${getRandomColor()}`,
-                transition: { duration: 0 },
-              }}
-              animate={{
-                transition: { duration: 2 },
-              }}
+            <div
               key={`col` + j}
-              className="relative h-8 w-16 border-t border-r border-slate-700"
+              className="relative h-8 w-16 border-t border-r border-black hover:bg-opacity-30 transition-colors duration-0"
+              style={{
+                backgroundColor: isNShape(i, j) ? 'rgba(0, 0, 0, 0.1)' : 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                if (!isNShape(i, j)) {
+                  e.currentTarget.style.backgroundColor = getRandomColor() || '#93c5fd';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isNShape(i, j)) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
               {j % 2 === 0 && i % 2 === 0 ? (
                 <svg
@@ -56,7 +89,7 @@ export const BoxesCore = ({ className, ...rest }: { className?: string }) => {
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="pointer-events-none absolute -top-[14px] -left-[22px] h-6 w-10 stroke-[1px] text-slate-700"
+                  className="pointer-events-none absolute -top-[14px] -left-[22px] h-6 w-10 stroke-[1px] text-black"
                 >
                   <path
                     strokeLinecap="round"
@@ -65,9 +98,9 @@ export const BoxesCore = ({ className, ...rest }: { className?: string }) => {
                   />
                 </svg>
               ) : null}
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       ))}
     </div>
   );
