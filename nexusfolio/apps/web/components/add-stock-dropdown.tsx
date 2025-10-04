@@ -1,15 +1,16 @@
 "use client";
 import { BarChart3, ChevronDown, Plus, ExternalLink } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { ManualStockModal } from "./manual-stock-modal";
 
 export function AddStockDropdown() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleManualAdd = () => {
     setIsDropdownOpen(false);
-    // TODO: Open manual add stock modal/form
-    console.log("Manual add stock");
+    setIsModalOpen(true);
   };
 
   const handleAlpacaConnect = () => {
@@ -70,6 +71,12 @@ export function AddStockDropdown() {
           </button>
         </div>
       )}
+      
+      {/* Manual Stock Modal */}
+      <ManualStockModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 }
