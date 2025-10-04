@@ -18,5 +18,8 @@
   "packageManager": "pnpm@10.4.1",
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@auth0/nextjs-auth0": "^4.10.0"
   }
 }
