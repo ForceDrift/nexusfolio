@@ -26,7 +26,7 @@ export default function RootLayout({
       >
         <Providers>
           <Navbar />
-          <main className="pt-20">
+          <main className="pt-20 bg-transparent">
             {children}
           </main>
         </Providers>
