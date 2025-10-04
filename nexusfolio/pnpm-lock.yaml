@@ -33,9 +33,15 @@ importers:
       '@auth0/nextjs-auth0':
         specifier: ^4.10.0
         version: 4.10.0(next@15.4.5(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@google/generative-ai':
+        specifier: ^0.24.1
+        version: 0.24.1
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@radix-ui/react-slot':
+        specifier: ^1.2.3
+        version: 1.2.3(@types/react@19.1.9)(react@19.1.1)
       '@react-three/drei':
         specifier: ^10.7.6
         version: 10.7.6(@react-three/fiber@9.3.0(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0))(@types/react@19.1.9)(@types/three@0.180.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(three@0.180.0)
@@ -48,6 +54,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.58.0
         version: 2.58.0
+      '@tabler/icons-react':
+        specifier: ^3.35.0
+        version: 3.35.0(react@19.1.1)
       '@workspace/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -171,6 +180,9 @@ importers:
       '@radix-ui/react-slot':
         specifier: ^1.2.3
         version: 1.2.3(@types/react@19.1.9)(react@19.1.1)
+      '@tabler/icons-react':
+        specifier: ^3.35.0
+        version: 3.35.0(react@19.1.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -180,6 +192,9 @@ importers:
       lucide-react:
         specifier: ^0.475.0
         version: 0.475.0(react@19.1.1)
+      motion:
+        specifier: ^12.23.22
+        version: 12.23.22(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -787,6 +802,14 @@ packages:
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
+  '@tabler/icons-react@3.35.0':
+    resolution: {integrity: sha512-XG7t2DYf3DyHT5jxFNp5xyLVbL4hMJYJhiSdHADzAjLRYfL7AnjlRfiHDHeXxkb2N103rEIvTsBRazxXtAUz2g==}
+    peerDependencies:
+      react: '>= 16'
+
+  '@tabler/icons@3.35.0':
+    resolution: {integrity: sha512-yYXe+gJ56xlZFiXwV9zVoe3FWCGuZ/D7/G4ZIlDtGxSx5CGQK110wrnT29gUj52kEZoxqF7oURTk97GQxELOFQ==}
+
   '@tailwindcss/node@4.1.11':
     resolution: {integrity: sha512-yzhzuGRmv5QyU9qLNg4GTlYI6STedBWRE7NjxP45CsFYYq9taI0zJXZBMqIC/c8fViNLhmrbpSFS57EoxUmD6Q==}
 
@@ -994,6 +1017,9 @@ packages:
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
+
+  '@types/webidl-conversions@7.0.3':
+    resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
 
   '@types/webxr@0.5.24':
     resolution: {integrity: sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==}
@@ -1487,6 +1513,9 @@ packages:
   detect-libc@2.0.4:
     resolution: {integrity: sha512-3UDv+G9CsCKO1WKMGw9fwq/SWJYbI0c5Y7LU1AXYoDdbhE2AHQ6N6Nb34sG8Fj7T5APy8qXDCKuuIHd1BR0tVA==}
     engines: {node: '>=8'}
+
+  detect-node-es@1.1.0:
+    resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==}
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
@@ -2368,6 +2397,9 @@ packages:
   mdast-util-to-string@4.0.0:
     resolution: {integrity: sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg==}
 
+  memory-pager@1.5.0:
+    resolution: {integrity: sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg==}
+
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
@@ -2541,6 +2573,20 @@ packages:
 
   motion-utils@12.23.6:
     resolution: {integrity: sha512-eAWoPgr4eFEOFfg2WjIsMoqJTW6Z8MTUCgn/GZ3VRpClWBdnbjryiA3ZSNLyxCTmCQx4RmYX6jX1iWHbenUPNQ==}
+
+  motion@12.23.22:
+    resolution: {integrity: sha512-iSq6X9vLHbeYwmHvhK//+U74ROaPnZmBuy60XZzqNl0QtZkWfoZyMDHYnpKuWFv0sNMqHgED8aCXk94LCoQPGg==}
+    peerDependencies:
+      '@emotion/is-prop-valid': '*'
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@emotion/is-prop-valid':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
 
   mpath@0.9.0:
     resolution: {integrity: sha512-ikJRQTk8hw5DEoFVxHG1Gn9T/xcjtdnOKIU1JTmGjZZlg9LST2mBLmcX3/ICIbgJydT2GOc15RnNy5mHmzfSew==}
@@ -3056,6 +3102,9 @@ packages:
   space-separated-tokens@2.0.2:
     resolution: {integrity: sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==}
 
+  sparse-bitfield@3.0.3:
+    resolution: {integrity: sha512-kvzhi7vqKTfkh0PZU+2D2PIllw2ymqJKujUcyPMd9Y75Nv4nPbGJZXNhxsgdQab2BmlDct1YnfQCguEvHr7VsQ==}
+
   sprintf-js@1.1.3:
     resolution: {integrity: sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==}
 
@@ -3231,6 +3280,13 @@ packages:
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
+
+  tr46@0.0.3:
+    resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
+
+  tr46@5.1.1:
+    resolution: {integrity: sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==}
+    engines: {node: '>=18'}
 
   trim-lines@3.0.1:
     resolution: {integrity: sha512-kRj8B+YHZCc9kQYdWfJB2/oUl9rA99qbowYYBtr4ui4mZyAQ2JpvVBd/6U2YloATfqBhBTSMhTpgBHtU0Mf3Rg==}
@@ -4085,6 +4141,13 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@tabler/icons-react@3.35.0(react@19.1.1)':
+    dependencies:
+      '@tabler/icons': 3.35.0
+      react: 19.1.1
+
+  '@tabler/icons@3.35.0': {}
+
   '@tailwindcss/node@4.1.11':
     dependencies:
       '@ampproject/remapping': 2.3.0
@@ -4309,6 +4372,8 @@ snapshots:
   '@types/unist@2.0.11': {}
 
   '@types/unist@3.0.3': {}
+
+  '@types/webidl-conversions@7.0.3': {}
 
   '@types/webxr@0.5.24': {}
 
@@ -4873,6 +4938,8 @@ snapshots:
       webgl-constants: 1.1.1
 
   detect-libc@2.0.4: {}
+
+  detect-node-es@1.1.0: {}
 
   devlop@1.1.0:
     dependencies:
@@ -5990,6 +6057,8 @@ snapshots:
     dependencies:
       '@types/mdast': 4.0.4
 
+  memory-pager@1.5.0: {}
+
   merge-stream@2.0.0: {}
 
   merge2@1.4.1: {}
@@ -6257,6 +6326,14 @@ snapshots:
       motion-utils: 12.23.6
 
   motion-utils@12.23.6: {}
+
+  motion@12.23.22(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
+    dependencies:
+      framer-motion: 12.23.22(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.1.1
+      react-dom: 19.1.1(react@19.1.1)
 
   mpath@0.9.0: {}
 
@@ -6902,6 +6979,10 @@ snapshots:
 
   space-separated-tokens@2.0.2: {}
 
+  sparse-bitfield@3.0.3:
+    dependencies:
+      memory-pager: 1.5.0
+
   sprintf-js@1.1.3: {}
 
   stats-gl@2.4.2(@types/three@0.180.0)(three@0.180.0):
@@ -7121,6 +7202,12 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  tr46@0.0.3: {}
+
+  tr46@5.1.1:
+    dependencies:
+      punycode: 2.3.1
 
   trim-lines@3.0.1: {}
 

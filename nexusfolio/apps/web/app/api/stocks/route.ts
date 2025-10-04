@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 import dbConnect from '@/utils/dbConnect';
 import Stock from '@/models/Stock';
+import StockAnalysis from '@/models/StockAnalysis';
+import Report from '@/models/Report';
 import { isValidObjectId } from 'mongoose';
 
 // DELETE /api/stocks?id=<stockId>&userId=<userId>
@@ -40,7 +42,19 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Verify the user owns this stock
+    // First, get the stock to retrieve the stockCode before deletion
+    const stockToDelete = await Stock.findOne({ _id: id, userId });
+    
+    if (!stockToDelete) {
+      return NextResponse.json(
+        { success: false, message: 'Stock not found or user not authorized' },
+        { status: 404 }
+      );
+    }
+
+    const stockCode = stockToDelete.stockCode;
+
+    // Delete the stock
     const deletedStock = await Stock.findOneAndDelete({ _id: id, userId });
 
     if (!deletedStock) {
@@ -50,8 +64,32 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // Delete associated stock analyses
+    try {
+      const deletedAnalyses = await StockAnalysis.deleteMany({ 
+        userId, 
+        stockCode: stockCode.toUpperCase() 
+      });
+      console.log(`Deleted ${deletedAnalyses.deletedCount} stock analyses for ${stockCode}`);
+    } catch (analysisError) {
+      console.error('Error deleting stock analyses:', analysisError);
+      // Continue with deletion even if analyses deletion fails
+    }
+
+    // Delete associated reports
+    try {
+      const deletedReports = await Report.deleteMany({ 
+        userId, 
+        stockCode: stockCode.toUpperCase() 
+      });
+      console.log(`Deleted ${deletedReports.deletedCount} reports for ${stockCode}`);
+    } catch (reportError) {
+      console.error('Error deleting reports:', reportError);
+      // Continue with deletion even if reports deletion fails
+    }
+
     return NextResponse.json(
-      { success: true, message: 'Stock deleted successfully' },
+      { success: true, message: `Stock ${deletedStock.stockCode} and all associated data deleted successfully` },
       { status: 200 }
     );
 

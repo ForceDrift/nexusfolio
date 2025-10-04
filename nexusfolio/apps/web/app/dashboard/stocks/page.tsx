@@ -26,9 +26,10 @@ export default async function StocksPage() {
         {/* Title Section */}
         <div className="bg-white px-6 py-3">
           <div className="flex items-center justify-between">
+            {/* Left side - My Stocks Title */}
             <div className="flex items-center space-x-2">
-              <TrendingUp className="w-7 h-7 text-black" />
-              <h1 className="text-lg font-semibold text-gray-900">Stocks Dashboard</h1>
+              <TrendingUp className="w-6 h-6 text-gray-700" />
+              <h1 className="text-xl font-semibold text-gray-900">My Stocks</h1>
             </div>
             
             {/* Right side - Add Stock Button with Dropdown */}

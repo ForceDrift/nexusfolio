@@ -2,6 +2,8 @@
 
 import dbConnect from '@/utils/dbConnect';
 import Stock from '@/models/Stock';
+import StockAnalysis from '@/models/StockAnalysis';
+import Report from '@/models/Report';
 import { isValidObjectId } from 'mongoose';
 import { auth0 } from '@/lib/auth0';
 
@@ -130,6 +132,19 @@ export async function deleteUserStock(stockId: string): Promise<ActionResult> {
       return { success: false, message: 'Invalid Stock ID format' };
     }
 
+    // First, get the stock to retrieve the stockCode before deletion
+    const stockToDelete = await Stock.findOne({ _id: stockId, userId });
+    
+    if (!stockToDelete) {
+      return { 
+        success: false, 
+        message: 'Stock not found or user not authorized' 
+      };
+    }
+
+    const stockCode = stockToDelete.stockCode;
+
+    // Delete the stock
     const deletedStock = await Stock.findOneAndDelete({ _id: stockId, userId });
 
     if (!deletedStock) {
@@ -139,9 +154,33 @@ export async function deleteUserStock(stockId: string): Promise<ActionResult> {
       };
     }
 
+    // Delete associated stock analyses
+    try {
+      const deletedAnalyses = await StockAnalysis.deleteMany({ 
+        userId, 
+        stockCode: stockCode.toUpperCase() 
+      });
+      console.log(`Deleted ${deletedAnalyses.deletedCount} stock analyses for ${stockCode}`);
+    } catch (analysisError) {
+      console.error('Error deleting stock analyses:', analysisError);
+      // Continue with deletion even if analyses deletion fails
+    }
+
+    // Delete associated reports
+    try {
+      const deletedReports = await Report.deleteMany({ 
+        userId, 
+        stockCode: stockCode.toUpperCase() 
+      });
+      console.log(`Deleted ${deletedReports.deletedCount} reports for ${stockCode}`);
+    } catch (reportError) {
+      console.error('Error deleting reports:', reportError);
+      // Continue with deletion even if reports deletion fails
+    }
+
     return { 
       success: true, 
-      message: `Stock ${deletedStock.stockCode} removed successfully` 
+      message: `Stock ${deletedStock.stockCode} and all associated data removed successfully` 
     };
   } catch (error: any) {
     console.error('Failed to delete stock:', error);
