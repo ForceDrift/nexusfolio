@@ -1,14 +1,16 @@
 import { auth0 } from "../lib/auth0";
 import { Button } from "@workspace/ui/components/button"
 import { Hero } from "@/components/hero"
+import { HeroSectionOne } from "@/components/hero-section-one"
 
 export default async function Page() {
   const session = await auth0.getSession();
 
   if (!session) {
     return (
-      <div className="min-h-screen pt-20">
-        <Hero />
+      <div className="min-h-screen">
+        {/* Hero Section */}
+        <HeroSectionOne />
 
         {/* Content sections to demonstrate scroll effect */}
         <section className="py-20 px-6">
