@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { auth0 } from '../../../lib/auth0';
+import dbConnect from '../../../utils/dbConnect';
+import StockAnalysis from '../../../models/StockAnalysis';
+import Report from '../../../models/Report';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await auth0.getSession();
+    if (!session) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Authentication required' 
+        },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const symbol = searchParams.get('symbol');
 
@@ -24,6 +40,9 @@ export async function GET(request: NextRequest) {
         message: 'Gemini API key not configured. Please set GEMINI_API_KEY in environment variables.' 
       }, { status: 500 });
     }
+
+    // Connect to database
+    await dbConnect();
 
     console.log(`Generating markdown analysis for stock: ${symbol.toUpperCase()}`);
 
@@ -65,6 +84,104 @@ export async function GET(request: NextRequest) {
         if (jsonMatch) {
           analysisData = JSON.parse(jsonMatch[0]);
           console.log('Successfully parsed Gemini response');
+          
+          // Save analysis to database
+          try {
+            const userId = session.user.sub;
+            const stockCode = symbol.toUpperCase();
+            
+            // Check if analysis already exists for this user and stock
+            const existingAnalysis = await StockAnalysis.findOne({ 
+              userId, 
+              stockCode 
+            });
+            
+            if (existingAnalysis) {
+              // Update existing analysis
+              existingAnalysis.companyName = analysisData.companyName;
+              existingAnalysis.analysisDate = new Date(analysisData.analysisDate);
+              existingAnalysis.markdownReport = analysisData.markdownReport;
+              await existingAnalysis.save();
+              console.log('Updated existing analysis in database');
+
+              // Also update/create in Report collection
+              try {
+                const existingReport = await Report.findOne({ 
+                  userId, 
+                  stockCode, 
+                  reportType: 'analysis' 
+                });
+                
+                if (existingReport) {
+                  existingReport.title = `${symbol.toUpperCase()} Stock Analysis - ${new Date().toLocaleDateString()}`;
+                  existingReport.content = analysisData.markdownReport;
+                  existingReport.reportDate = new Date(analysisData.analysisDate);
+                  existingReport.metadata.wordCount = analysisData.markdownReport.split(/\s+/).length;
+                  await existingReport.save();
+                  console.log('Updated existing report in Report collection');
+                } else {
+                  const newReport = new Report({
+                    userId,
+                    stockCode,
+                    companyName: analysisData.companyName,
+                    reportType: 'analysis',
+                    title: `${symbol.toUpperCase()} Stock Analysis - ${new Date().toLocaleDateString()}`,
+                    content: analysisData.markdownReport,
+                    reportDate: new Date(analysisData.analysisDate),
+                    metadata: {
+                      source: 'gemini-ai',
+                      confidence: 0.8,
+                      tags: ['stock-analysis', 'financial-report', symbol.toLowerCase()],
+                      wordCount: analysisData.markdownReport.split(/\s+/).length,
+                    }
+                  });
+                  await newReport.save();
+                  console.log('Created new report in Report collection');
+                }
+              } catch (reportError) {
+                console.error('Error updating report in Report collection:', reportError);
+                // Continue even if report save fails
+              }
+            } else {
+              // Create new analysis
+              const newAnalysis = new StockAnalysis({
+                userId,
+                stockCode,
+                companyName: analysisData.companyName,
+                analysisDate: new Date(analysisData.analysisDate),
+                markdownReport: analysisData.markdownReport,
+              });
+              await newAnalysis.save();
+              console.log('Saved new analysis to database');
+            }
+
+            // Also save to Report collection
+            try {
+              const report = new Report({
+                userId,
+                stockCode,
+                companyName: analysisData.companyName,
+                reportType: 'analysis',
+                title: `${symbol.toUpperCase()} Stock Analysis - ${new Date().toLocaleDateString()}`,
+                content: analysisData.markdownReport,
+                reportDate: new Date(analysisData.analysisDate),
+                metadata: {
+                  source: 'gemini-ai',
+                  confidence: 0.8,
+                  tags: ['stock-analysis', 'financial-report', symbol.toLowerCase()],
+                  wordCount: analysisData.markdownReport.split(/\s+/).length,
+                }
+              });
+              await report.save();
+              console.log('Saved report to Report collection');
+            } catch (reportError) {
+              console.error('Error saving report to Report collection:', reportError);
+              // Continue even if report save fails
+            }
+          } catch (dbError) {
+            console.error('Error saving analysis to database:', dbError);
+            // Continue with response even if database save fails
+          }
         } else {
           throw new Error('No JSON found in Gemini response');
         }

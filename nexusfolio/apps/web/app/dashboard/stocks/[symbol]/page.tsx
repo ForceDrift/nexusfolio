@@ -16,7 +16,7 @@ export default async function StockPage({ params }: StockPageProps) {
     redirect("/auth/login");
   }
 
-  const { symbol } = params;
+  const { symbol } = await params;
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
