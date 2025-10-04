@@ -54,7 +54,7 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Floating Table of Contents */}
-      <div className="fixed top-32 right-8 w-56 p-5 z-10">
+      <div className="fixed top-24 right-8 w-56 p-5 z-10">
         <h3 className="text-sm font-semibold text-gray-900 mb-4">Table of Contents</h3>
         <nav className="space-y-2">
           {sections.map((section) => (
@@ -93,13 +93,13 @@ export default function BlogPage() {
           </svg>
         </h1>
         
-        <p className="text-xl text-gray-600 leading-relaxed mb-8">
+        <p className="text-xl text-gray-600 leading-relaxed">
           {blogPosts[0].excerpt}
         </p>
       </div>
 
       {/* Update Badges */}
-      <div id="updates" className="max-w-4xl mx-auto px-6 mb-12">
+      <div id="updates" className="max-w-4xl mx-auto px-6 mb-6 -mt-4">
         <div className="space-y-3">
           <div className="inline-flex items-center bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm hover:bg-gray-200 transition-colors cursor-pointer">
             Latest update Auth0 Integration Complete
