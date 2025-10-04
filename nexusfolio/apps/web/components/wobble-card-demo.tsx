@@ -16,7 +16,7 @@ import {
 
 export function WobbleCardDemo() {
   return (
-    <div className="bg-black w-full py-20 px-6">
+    <div className="w-full py-20 px-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
       {/* Investment Solutions Card */}
       <Card className="border border-slate-200 bg-white overflow-hidden shadow-lg rounded-xl">
