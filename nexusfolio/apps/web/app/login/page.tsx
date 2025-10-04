@@ -1,6 +1,7 @@
 import { AuthForm } from "@/components/auth/auth-form"
 import { Boxes } from "@/components/ui/background-boxes"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function LoginPage() {
   return (
@@ -9,14 +10,16 @@ export default function LoginPage() {
       <div className="flex-1 max-w-md lg:max-w-lg xl:max-w-xl flex flex-col justify-center px-6 lg:px-12 xl:px-16">
         {/* Logo */}
         <div className="mb-8 flex items-center space-x-3">
-          <Image
-            src="/download (2).png"
-            alt="Logo"
-            width={200}
-            height={60}
-            className="h-12 w-auto"
-          />
-          <h1 className="text-2xl font-bold text-foreground tracking-tight font-inter">NexusFolio</h1>
+          <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+            <Image
+              src="/download (2).png"
+              alt="Logo"
+              width={200}
+              height={60}
+              className="h-12 w-auto"
+            />
+            <h1 className="text-2xl font-bold text-foreground tracking-tight font-inter">NexusFolio</h1>
+          </Link>
         </div>
         
         <div className="mb-8">
