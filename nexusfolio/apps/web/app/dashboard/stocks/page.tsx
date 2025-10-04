@@ -1,6 +1,9 @@
 import { auth0 } from "../../../lib/auth0";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
+import { TrendingUp } from "lucide-react";
+import { AddStockDropdown } from "@/components/add-stock-dropdown";
+import { StocksPortfolio } from "@/components/stocks-portfolio";
 
 export default async function StocksPage() {
   const session = await auth0.getSession();
@@ -10,40 +13,32 @@ export default async function StocksPage() {
   }
 
   return (
-    <div className="h-screen bg-background flex overflow-hidden">
+    <div className="h-screen bg-white flex overflow-hidden">
       {/* Sidebar */}
       <Sidebar user={session.user} />
       
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4">
-          <h1 className="text-2xl font-bold text-card-foreground">Stocks</h1>
-          <p className="text-muted-foreground">Manage your stock investments and track market performance</p>
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
         </header>
+
+        {/* Title Section */}
+        <div className="bg-white px-6 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="w-7 h-7 text-black" />
+              <h1 className="text-lg font-semibold text-gray-900">Stocks Dashboard</h1>
+            </div>
+            
+            {/* Right side - Add Stock Button with Dropdown */}
+            <AddStockDropdown userId={session.user.sub} />
+          </div>
+        </div>
 
         {/* Main Content */}
         <main className="flex-1 p-6 overflow-auto">
-          <div className="border-4 border-dashed border-border rounded-lg h-96 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Stocks Dashboard</h2>
-              <p className="text-muted-foreground mb-6">
-                This is the Stocks page placeholder. Here you'll be able to:
-              </p>
-              <div className="space-y-4 max-w-md mx-auto">
-                <div className="bg-card p-4 rounded-lg border border-border text-left">
-                  <h3 className="font-semibold mb-2 text-card-foreground">Features Coming Soon:</h3>
-                  <ul className="text-card-foreground space-y-1 text-sm">
-                    <li>• View your stock portfolio</li>
-                    <li>• Track stock prices in real-time</li>
-                    <li>• Buy and sell stocks</li>
-                    <li>• Analyze stock performance</li>
-                    <li>• Set up price alerts</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
+          <StocksPortfolio />
         </main>
       </div>
     </div>
