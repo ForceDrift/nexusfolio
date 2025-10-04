@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Building2, TrendingUp, TrendingDown, X } from "lucide-react";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DeleteStockDialog } from "@/components/delete-stock-dialog";
 
 interface Stock {
   symbol: string;
@@ -75,7 +76,11 @@ function CompanyLogo({ logoUrl, symbol, className }: { logoUrl?: string; symbol:
 }
 
 // Individual Stock Card Component
-function StockCard({ stock, onRemove }: { stock: Stock; onRemove: (symbol: string) => void }) {
+function StockCard({ stock, onRemoveClick: onRemoveClick, stockId }: { 
+  stock: Stock; 
+  onRemoveClick: (symbol: string, buttonRect: DOMRect) => void;
+  stockId: string;
+}) {
   const [stockData, setStockData] = useState<{
     price: number;
     change: number;
@@ -212,7 +217,10 @@ function StockCard({ stock, onRemove }: { stock: Stock; onRemove: (symbol: strin
           </div>
           
           <button
-            onClick={() => onRemove(stock.symbol)}
+            onClick={(e) => {
+              const buttonRect = e.currentTarget.getBoundingClientRect();
+              onRemoveClick(stock.symbol, buttonRect);
+            }}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
             <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
@@ -260,6 +268,17 @@ export function StocksPortfolio() {
   const [portfolio, setPortfolio] = useState<Stock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    stockSymbol: string;
+    stockId: string;
+    buttonRect?: DOMRect;
+  }>({
+    isOpen: false,
+    stockSymbol: '',
+    stockId: '',
+    buttonRect: undefined
+  });
 
   // Fetch user stocks from API
   useEffect(() => {
@@ -337,26 +356,44 @@ export function StocksPortfolio() {
     fetchUserStocks();
   }, []);
 
-  // Remove stock from portfolio (and from database)
-  const removeStockFromPortfolio = async (symbol: string) => {
-    try {
-      // Find the user stock to get its ID
-      const userStock = userStocks.find(stock => stock.stockCode === symbol);
-      if (!userStock) return;
+  // Handle stock removal click (show confirmation dialog)
+  const handleRemoveClick = (symbol: string, buttonRect: DOMRect) => {
+    // Find the user stock to get its ID
+    const userStock = userStocks.find(stock => stock.stockCode === symbol);
+    if (!userStock) return;
 
-      // Call delete API
-      const response = await fetch(`/api/stocks?id=${userStock._id}&userId=${userStock.userId}`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        // Remove from local state
-        setUserStocks(prev => prev.filter(stock => stock._id !== userStock._id));
-        setPortfolio(prev => prev.filter(stock => stock.symbol !== symbol));
-      }
-    } catch (error) {
-      console.error('Error removing stock:', error);
-    }
+    setDeleteDialog({
+      isOpen: true,
+      stockSymbol: symbol,
+      stockId: userStock._id,
+      buttonRect: buttonRect
+    });
+  };
+
+  // Handle confirmed deletion
+  const handleStockDeleted = () => {
+    // Remove from local state
+    const symbol = deleteDialog.stockSymbol;
+    setUserStocks(prev => prev.filter(stock => stock.stockCode !== symbol));
+    setPortfolio(prev => prev.filter(stock => stock.symbol !== symbol));
+    
+    // Close dialog
+    setDeleteDialog({
+      isOpen: false,
+      stockSymbol: '',
+      stockId: '',
+      buttonRect: undefined
+    });
+  };
+
+  // Close delete dialog
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialog({
+      isOpen: false,
+      stockSymbol: '',
+      stockId: '',
+      buttonRect: undefined
+    });
   };
 
   // Show loading state
@@ -434,23 +471,39 @@ export function StocksPortfolio() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Stock Cards */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Your Stocks</h3>
-          <div className="text-sm text-gray-500">
-            {portfolio.length} {portfolio.length === 1 ? 'stock' : 'stocks'} in portfolio
+    <>
+      <div className="space-y-6">
+        {/* Stock Cards */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Your Stocks</h3>
+            <div className="text-sm text-gray-500">
+              {portfolio.length} {portfolio.length === 1 ? 'stock' : 'stocks'} in portfolio
+            </div>
           </div>
+          {portfolio.map((stock, index) => {
+            const userStock = userStocks.find(us => us.stockCode === stock.symbol);
+            return (
+              <StockCard
+                key={`${stock.symbol}-${stock.exchange}`}
+                stock={stock}
+                stockId={userStock?._id || ''}
+                onRemoveClick={handleRemoveClick}
+              />
+            );
+          })}
         </div>
-        {portfolio.map((stock) => (
-          <StockCard
-            key={`${stock.symbol}-${stock.exchange}`}
-            stock={stock}
-            onRemove={removeStockFromPortfolio}
-          />
-        ))}
       </div>
-    </div>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteStockDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={handleCloseDeleteDialog}
+        stockSymbol={deleteDialog.stockSymbol}
+        stockId={deleteDialog.stockId}
+        onStockDeleted={handleStockDeleted}
+        buttonRect={deleteDialog.buttonRect}
+      />
+    </>
   );
 }

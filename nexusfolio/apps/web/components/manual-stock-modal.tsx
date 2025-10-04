@@ -218,6 +218,8 @@ export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalPr
         // Close modal after successful addition
         setTimeout(() => {
           handleClose();
+          // Reload the page to refresh the portfolio
+          window.location.reload();
         }, 1500);
       }
       
