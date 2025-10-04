@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Image from "next/image";
 import { Grid } from 'ldrs/react';
+import { MultiStepLoader as Loader } from "@workspace/ui/components/ui/multi-step-loader";
 
 interface StockNewsGeneratorProps {
   symbol: string;
@@ -15,11 +16,71 @@ interface AnalysisData {
   markdownReport: string;
 }
 
+const loadingStates = [
+  {
+    text: "Connecting to Gemini AI...",
+  },
+  {
+    text: "Analyzing company fundamentals...",
+  },
+  {
+    text: "Gathering recent news and developments...",
+  },
+  {
+    text: "Evaluating market sentiment...",
+  },
+  {
+    text: "Assessing financial performance...",
+  },
+  {
+    text: "Generating comprehensive report...",
+  },
+  {
+    text: "Formatting markdown content...",
+  },
+  {
+    text: "Saving analysis to database...",
+  },
+];
+
 export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingReport, setIsCheckingReport] = useState(true);
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sections, setSections] = useState<Array<{id: string, title: string, level: number}>>([]);
+  const [hasExistingReport, setHasExistingReport] = useState(false);
+
+  // Check for existing report on component mount
+  useEffect(() => {
+    const checkExistingReport = async () => {
+      try {
+        const response = await fetch(`/api/user-analyses/${encodeURIComponent(symbol)}`);
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            // Load existing analysis
+            setAnalysisData(result.data);
+            const extractedSections = extractSections(result.data.markdownReport);
+            setSections(extractedSections);
+            setHasExistingReport(true);
+          } else {
+            setHasExistingReport(false);
+          }
+        } else {
+          setHasExistingReport(false);
+        }
+      } catch (err) {
+        console.error('Error checking for existing report:', err);
+        setHasExistingReport(false);
+      } finally {
+        setIsCheckingReport(false);
+      }
+    };
+
+    checkExistingReport();
+  }, [symbol]);
 
   // Extract sections from markdown content
   const extractSections = (markdown: string) => {
@@ -70,6 +131,7 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
         setAnalysisData(result);
         const extractedSections = extractSections(result.markdownReport);
         setSections(extractedSections);
+        setHasExistingReport(true); // Update state after generating
       } else {
         setError(result.message || 'Failed to fetch analysis data');
       }
@@ -296,17 +358,52 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
   // Show loading state
   if (isLoading) {
     return (
+      <Loader loadingStates={loadingStates} loading={isLoading} duration={1500} />
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
       <div className="flex flex-col items-center justify-center h-full space-y-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Generating News & Research
+          <h2 className="text-2xl font-bold text-red-600 mb-2">
+            Error Loading News
           </h2>
           <p className="text-gray-600 mb-6">
-            Gemini is analyzing the latest information about {symbol}...
+            {error}
+          </p>
+          <button
+            onClick={handleGenerateNews}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Image 
+              src="/Gemini_Logo.png" 
+              alt="Gemini" 
+              width={16} 
+              height={16}
+              className="w-4 h-4"
+            />
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while checking for existing reports
+  if (isCheckingReport) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Checking for existing reports...
+          </h2>
+          <p className="text-gray-600">
+            Looking for previous analysis of {symbol}
           </p>
         </div>
         
-        {/* Gemini Logo */}
         <div className="flex items-center space-x-3 mb-8">
           <Image 
             src="/Gemini_Logo.png" 
@@ -317,7 +414,6 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
           />
         </div>
 
-        {/* Loading Animation */}
         <div className="flex h-32 gap-4 p-5 md:gap-6">
           <div className="size-9 shrink-0 rounded-full bg-gray-100"></div>
           <div className="flex w-full max-w-3xl flex-col gap-4 rounded-lg pt-2">
@@ -364,44 +460,45 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
     );
   }
 
-  // Show error state
-  if (error) {
+  // Show initial state with generate button only if no existing report
+  if (!hasExistingReport) {
     return (
-      <div className="flex flex-col items-center justify-center h-full space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">
-            Error Loading News
+      <div className="flex flex-col items-center justify-center h-full">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Generate News & Research
           </h2>
-          <p className="text-gray-600 mb-6">
-            {error}
+          <p className="text-gray-600">
+            Click the button below to get the latest news and analysis for {symbol}
           </p>
-          <button
-            onClick={handleGenerateNews}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
-          >
-            <Image 
-              src="/Gemini_Logo.png" 
-              alt="Gemini" 
-              width={16} 
-              height={16}
-              className="w-4 h-4"
-            />
-            Try Again
-          </button>
         </div>
+        
+        <button
+          onClick={handleGenerateNews}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md text-sm font-medium hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+        >
+          <Image 
+            src="/Gemini_Logo.png" 
+            alt="Gemini" 
+            width={16} 
+            height={16}
+            className="w-4 h-4"
+          />
+          Generate News and Research
+        </button>
       </div>
     );
   }
 
-  // Show initial state with generate button
+  // If we reach here, there should be existing data, but show a fallback
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Generate News & Research
+          No Report Found
         </h2>
         <p className="text-gray-600">
-          Click the button below to get the latest news and analysis for {symbol}
+          No existing analysis found for {symbol}. Click below to generate one.
         </p>
       </div>
       
