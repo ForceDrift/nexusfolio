@@ -2,6 +2,7 @@
 import { BarChart3, ChevronDown, Plus, ExternalLink } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { ManualStockModal } from "./manual-stock-modal";
+import { AlpacaOAuthScreen } from "./alpaca-oauth-screen";
 
 interface AddStockDropdownProps {
   userId?: string; // Add userId prop
@@ -10,6 +11,7 @@ interface AddStockDropdownProps {
 export function AddStockDropdown({ userId }: AddStockDropdownProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isOAuthOpen, setIsOAuthOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleManualAdd = () => {
@@ -19,8 +21,18 @@ export function AddStockDropdown({ userId }: AddStockDropdownProps) {
 
   const handleAlpacaConnect = () => {
     setIsDropdownOpen(false);
-    // TODO: Open Alpaca connection flow
-    console.log("Connect to Alpaca");
+    setIsOAuthOpen(true);
+  };
+
+  const handleOAuthAuthorize = (accountType: 'live' | 'paper', accountId: string) => {
+    console.log(`Authorizing ${accountType} account: ${accountId}`);
+    // TODO: Implement actual OAuth flow
+    setIsOAuthOpen(false);
+    // You can add success notification here
+  };
+
+  const handleOAuthClose = () => {
+    setIsOAuthOpen(false);
   };
 
   // Close dropdown when clicking outside
@@ -81,6 +93,13 @@ export function AddStockDropdown({ userId }: AddStockDropdownProps) {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         userId={userId}
+      />
+
+      {/* Alpaca OAuth Screen */}
+      <AlpacaOAuthScreen 
+        isOpen={isOAuthOpen} 
+        onClose={handleOAuthClose}
+        onAuthorize={handleOAuthAuthorize}
       />
     </div>
   );
