@@ -124,4 +124,18 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Smooth scrolling for better navbar experience */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Custom transition utilities */
+  .transition-navbar {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-navbar-slow {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
