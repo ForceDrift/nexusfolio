@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, TrendingUp, Building2, ArrowRight, TrendingDown, DollarSign, BarChart3 } from "lucide-react";
+import { Search, TrendingUp, Building2, ArrowRight, TrendingDown, DollarSign, BarChart3, Check, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { addUserStock } from "@/actions/stocks";
 
 interface Stock {
   symbol: string;
@@ -22,6 +23,7 @@ interface Stock {
 interface ManualStockModalProps {
   isOpen: boolean;
   onClose: () => void;
+  userId?: string; // Add userId prop for portfolio management
 }
 
 // Company Logo Component with fallback
@@ -59,7 +61,7 @@ function CompanyLogo({ logoUrl, symbol, className }: { logoUrl?: string; symbol:
   );
 }
 
-export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
+export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -80,6 +82,13 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
     volume: 'N/A',
     loading: true
   });
+  
+  // Add to portfolio state
+  const [isAddingToPortfolio, setIsAddingToPortfolio] = useState(false);
+  const [addToPortfolioResult, setAddToPortfolioResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   // Debounced search
   useEffect(() => {
@@ -180,15 +189,47 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
     console.log("Stock logo URL:", stock.logoUrl);
   };
 
-  const handleAddToPortfolio = () => {
-    if (selectedStock) {
-      // Use global function if available
-      if ((window as any).addStockToPortfolio) {
-        (window as any).addStockToPortfolio(selectedStock);
-      }
+  const handleAddToPortfolio = async () => {
+    if (!selectedStock) return;
+    
+    // Check if userId is provided
+    if (!userId) {
+      setAddToPortfolioResult({
+        success: false,
+        message: "User ID is required to add stocks to portfolio"
+      });
+      return;
     }
-    console.log("Adding to portfolio:", selectedStock);
-    onClose();
+
+    setIsAddingToPortfolio(true);
+    setAddToPortfolioResult(null);
+
+    try {
+      console.log("Adding to portfolio:", selectedStock);
+      
+      const result = await addUserStock(userId, selectedStock.symbol);
+      
+      setAddToPortfolioResult({
+        success: result.success,
+        message: result.message
+      });
+
+      if (result.success) {
+        // Close modal after successful addition
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
+      }
+      
+    } catch (error) {
+      console.error("Error adding stock to portfolio:", error);
+      setAddToPortfolioResult({
+        success: false,
+        message: "Failed to add stock to portfolio. Please try again."
+      });
+    } finally {
+      setIsAddingToPortfolio(false);
+    }
   };
 
   const handleBackToSearch = () => {
@@ -209,6 +250,8 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
       volume: 'N/A',
       loading: true
     });
+    setIsAddingToPortfolio(false);
+    setAddToPortfolioResult(null);
     onClose();
   };
 
@@ -344,13 +387,43 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
                 </div>
               </div>
 
+              {/* Add to Portfolio Result */}
+              {addToPortfolioResult && (
+                <div className={`p-3 rounded-lg flex items-center gap-2 ${
+                  addToPortfolioResult.success 
+                    ? 'bg-green-100 text-green-800 border border-green-200' 
+                    : 'bg-red-100 text-red-800 border border-red-200'
+                }`}>
+                  {addToPortfolioResult.success ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4" />
+                  )}
+                  <span className="text-sm font-medium">{addToPortfolioResult.message}</span>
+                </div>
+              )}
+
               {/* Action Button */}
               <button
                 onClick={handleAddToPortfolio}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                disabled={isAddingToPortfolio || !userId}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
-                Add to Portfolio
+                {isAddingToPortfolio ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Adding to Portfolio...
+                  </>
+                ) : (
+                  'Add to Portfolio'
+                )}
               </button>
+              
+              {!userId && (
+                <p className="text-xs text-gray-500 text-center">
+                  User ID required to add stocks to portfolio
+                </p>
+              )}
             </div>
           )}
 

@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { getUserStocks, addUserStock, deleteUserStock, type ActionResult, type StockData } from '@/actions/stocks'
 
 export default function TestStocksPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
-  const [stocks, setStocks] = useState<any[]>([])
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [stocks, setStocks] = useState<StockData[]>([])
   const [userId, setUserId] = useState('user-123')
   const [stockCode, setStockCode] = useState('')
 
@@ -24,18 +25,7 @@ export default function TestStocksPage() {
     try {
       console.log('🚀 Adding stock...')
       
-      const response = await fetch('/api/stocks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          stockCode: stockCode.trim()
-        })
-      })
-      
-      const data = await response.json()
+      const data = await addUserStock(userId, stockCode.trim())
       setResult(data)
       
       if (data.success) {
@@ -51,7 +41,7 @@ export default function TestStocksPage() {
       setResult({
         success: false,
         message: 'Unexpected error occurred',
-        error: error
+        error: String(error)
       })
     } finally {
       setIsLoading(false)
@@ -64,11 +54,10 @@ export default function TestStocksPage() {
     try {
       console.log('📖 Fetching stocks...')
       
-      const response = await fetch(`/api/stocks?userId=${encodeURIComponent(userId)}`)
-      const data = await response.json()
+      const data = await getUserStocks(userId)
       
-      if (data.success) {
-        setStocks(data.data)
+      if (data.success && data.data) {
+        setStocks(data.data as StockData[])
         console.log('✅ Successfully fetched stocks:', data.data.length)
       } else {
         console.error('❌ Error fetching stocks:', data.message)
@@ -93,11 +82,7 @@ export default function TestStocksPage() {
     try {
       console.log('🗑️ Deleting stock...')
       
-      const response = await fetch(`/api/stocks?id=${stockId}&userId=${encodeURIComponent(userId)}`, {
-        method: 'DELETE'
-      })
-      
-      const data = await response.json()
+      const data = await deleteUserStock(stockId, userId)
       
       if (data.success) {
         console.log('✅ Success:', data.message)
@@ -112,7 +97,7 @@ export default function TestStocksPage() {
       setResult({
         success: false,
         message: 'Unexpected error occurred',
-        error: error
+        error: String(error)
       })
     } finally {
       setIsLoading(false)

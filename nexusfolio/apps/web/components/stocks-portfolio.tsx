@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Building2, TrendingUp, TrendingDown, X } from "lucide-react";
 import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Stock {
   symbol: string;
@@ -12,27 +13,62 @@ interface Stock {
   logoUrl?: string;
 }
 
+interface UserStock {
+  _id: string;
+  userId: string;
+  stockCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Company Logo Component with fallback
 function CompanyLogo({ logoUrl, symbol, className }: { logoUrl?: string; symbol: string; className?: string }) {
   const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(!!logoUrl);
+
+  // Reset error state when logoUrl changes
+  useEffect(() => {
+    setImageError(false);
+    setImageLoading(!!logoUrl);
+  }, [logoUrl]);
 
   if (!logoUrl || imageError) {
+    // Color-coded fallback icons based on first letter
+    const getFallbackColor = (symbol: string) => {
+      const colors = [
+        'bg-blue-100 border-blue-200 text-blue-600',
+        'bg-green-100 border-green-200 text-green-600',
+        'bg-purple-100 border-purple-200 text-purple-600',
+        'bg-orange-100 border-orange-200 text-orange-600',
+        'bg-red-100 border-red-200 text-red-600',
+        'bg-cyan-100 border-cyan-200 text-cyan-600'
+      ];
+      return colors[symbol.charCodeAt(0) % colors.length];
+    };
+
     return (
-      <div className={`bg-blue-100 rounded-full flex items-center justify-center border border-blue-200 ${className}`}>
-        <Building2 className="w-4 h-4 text-blue-600" />
+      <div className={`rounded-full flex items-center justify-center border ${getFallbackColor(symbol)} ${className}`}>
+        <span className="text-xs font-semibold">{symbol.substring(0, 2)}</span>
       </div>
     );
   }
 
   return (
     <div className={`relative ${className}`}>
+      {imageLoading && (
+        <div className="absolute inset-0 bg-gray-100 rounded-full animate-pulse" />
+      )}
       <Image
         src={logoUrl}
         alt={`${symbol} logo`}
-        width={32}
-        height={32}
-        className="rounded-full object-cover border border-gray-200"
-        onError={() => setImageError(true)}
+        width={40}
+        height={40}
+        className={`rounded-full object-cover border border-gray-200 ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+        onLoad={() => setImageLoading(false)}
+        onError={() => {
+          setImageError(true);
+          setImageLoading(false);
+        }}
       />
     </div>
   );
@@ -139,9 +175,9 @@ function StockCard({ stock, onRemove }: { stock: Stock; onRemove: (symbol: strin
         <div className="flex items-center gap-4">
           <div className="text-right">
             {stockData.loading ? (
-              <div className="animate-pulse">
-                <div className="h-6 bg-gray-200 rounded w-16 mb-1"></div>
-                <div className="h-4 bg-gray-200 rounded w-12"></div>
+              <div className="space-y-1">
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-4 w-12" />
               </div>
             ) : (
               <>
@@ -163,9 +199,9 @@ function StockCard({ stock, onRemove }: { stock: Stock; onRemove: (symbol: strin
           <div className="text-right">
             <p className="text-sm text-gray-600">Market Cap</p>
             {stockData.loading ? (
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-12 mb-1"></div>
-                <div className="h-3 bg-gray-200 rounded w-8"></div>
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-3 w-8" />
               </div>
             ) : (
               <>
@@ -187,49 +223,183 @@ function StockCard({ stock, onRemove }: { stock: Stock; onRemove: (symbol: strin
   );
 }
 
+// Loading skeleton for stock cards
+function StockCardSkeleton() {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-10 h-10 rounded-full" />
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-3 w-12" />
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="text-right space-y-1">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-4 w-12" />
+          </div>
+          
+          <div className="text-right space-y-1">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-3 w-8" />
+          </div>
+          
+          <Skeleton className="w-6 h-6 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function StocksPortfolio() {
+  const [userStocks, setUserStocks] = useState<UserStock[]>([]);
   const [portfolio, setPortfolio] = useState<Stock[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load portfolio from localStorage on mount
+  // Fetch user stocks from API
   useEffect(() => {
-    const savedPortfolio = localStorage.getItem('stocks-portfolio');
-    if (savedPortfolio) {
+    const fetchUserStocks = async () => {
       try {
-        setPortfolio(JSON.parse(savedPortfolio));
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await fetch('/api/user-stocks');
+        const data = await response.json();
+        
+        if (data.success) {
+          setUserStocks(data.data);
+          
+          // Fetch stock details including logos for each stock
+          const portfolioStocks: Stock[] = [];
+          
+          for (const userStock of data.data) {
+            try {
+              // Fetch stock details using the search API
+              const searchResponse = await fetch(`/api/searchStock?q=${encodeURIComponent(userStock.stockCode)}`);
+              const searchData = await searchResponse.json();
+              
+              if (searchData.stocks && searchData.stocks.length > 0) {
+                // Find exact match or first match
+                const stockMatch = searchData.stocks.find((s: any) => 
+                  s.symbol === userStock.stockCode
+                ) || searchData.stocks[0];
+                
+                portfolioStocks.push({
+                  symbol: stockMatch.symbol,
+                  name: stockMatch.name,
+                  exchange: stockMatch.exchange,
+                  type: stockMatch.type,
+                  market: stockMatch.market,
+                  logoUrl: stockMatch.logoUrl
+                });
+              } else {
+                // Fallback if search fails
+                portfolioStocks.push({
+                  symbol: userStock.stockCode,
+                  name: `${userStock.stockCode}`, 
+                  exchange: 'NASDAQ',
+                  type: 'Common Stock',
+                  market: 'US',
+                  logoUrl: undefined // Use fallback icon instead of likely broken URL
+                });
+              }
+            } catch (searchError) {
+              console.error(`Error fetching details for ${userStock.stockCode}:`, searchError);
+              // Fallback if search fails
+              portfolioStocks.push({
+                symbol: userStock.stockCode,
+                name: `${userStock.stockCode}`, 
+                exchange: 'NASDAQ',
+                type: 'Common Stock',
+                market: 'US',
+                logoUrl: undefined // Use fallback icon instead of likely broken URL
+              });
+            }
+          }
+          
+          setPortfolio(portfolioStocks);
+        } else {
+          setError(data.message || 'Failed to fetch stocks');
+        }
       } catch (error) {
-        console.error('Error loading portfolio:', error);
+        console.error('Error fetching user stocks:', error);
+        setError('Failed to fetch stocks');
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, []);
-
-  // Save portfolio to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('stocks-portfolio', JSON.stringify(portfolio));
-  }, [portfolio]);
-
-  // Add stock to portfolio
-  const addStockToPortfolio = (stock: Stock) => {
-    // Check if stock already exists
-    const exists = portfolio.some(s => s.symbol === stock.symbol);
-    if (!exists) {
-      setPortfolio(prev => [...prev, stock]);
-    }
-  };
-
-  // Remove stock from portfolio
-  const removeStockFromPortfolio = (symbol: string) => {
-    setPortfolio(prev => prev.filter(stock => stock.symbol !== symbol));
-  };
-
-  // Expose addStockToPortfolio globally for the modal to use
-  useEffect(() => {
-    (window as any).addStockToPortfolio = addStockToPortfolio;
-    return () => {
-      delete (window as any).addStockToPortfolio;
     };
+
+    fetchUserStocks();
   }, []);
 
+  // Remove stock from portfolio (and from database)
+  const removeStockFromPortfolio = async (symbol: string) => {
+    try {
+      // Find the user stock to get its ID
+      const userStock = userStocks.find(stock => stock.stockCode === symbol);
+      if (!userStock) return;
 
+      // Call delete API
+      const response = await fetch(`/api/stocks?id=${userStock._id}&userId=${userStock.userId}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        // Remove from local state
+        setUserStocks(prev => prev.filter(stock => stock._id !== userStock._id));
+        setPortfolio(prev => prev.filter(stock => stock.symbol !== symbol));
+      }
+    } catch (error) {
+      console.error('Error removing stock:', error);
+    }
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          {[1, 2, 3].map((i) => (
+            <StockCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-full">
+        <div className="max-w-sm mx-auto text-center">
+          <div className="p-4">
+            <div className="mb-3">
+              <TrendingUp className="w-8 h-8 text-red-500 mb-2 mx-auto" />
+            </div>
+            <h2 className="text-lg font-bold text-gray-700 mb-2">Error Loading Stocks</h2>
+            <p className="text-gray-500 mb-3 text-sm">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state
   if (portfolio.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-full">
@@ -268,9 +438,9 @@ export function StocksPortfolio() {
       {/* Stock Cards */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Current Stocks</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Your Stocks</h3>
           <div className="text-sm text-gray-500">
-            {portfolio.length} {portfolio.length === 1 ? 'stock' : 'stocks'} in watchlist
+            {portfolio.length} {portfolio.length === 1 ? 'stock' : 'stocks'} in portfolio
           </div>
         </div>
         {portfolio.map((stock) => (

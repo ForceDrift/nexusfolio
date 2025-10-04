@@ -3,7 +3,11 @@ import { BarChart3, ChevronDown, Plus, ExternalLink } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { ManualStockModal } from "./manual-stock-modal";
 
-export function AddStockDropdown() {
+interface AddStockDropdownProps {
+  userId?: string; // Add userId prop
+}
+
+export function AddStockDropdown({ userId }: AddStockDropdownProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -75,7 +79,8 @@ export function AddStockDropdown() {
       {/* Manual Stock Modal */}
       <ManualStockModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        onClose={() => setIsModalOpen(false)}
+        userId={userId}
       />
     </div>
   );
