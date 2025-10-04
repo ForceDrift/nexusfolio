@@ -149,7 +149,7 @@ export function HeroSectionOne() {
             duration: 0.3,
             delay: 1.2,
           }}
-          className="relative z-10 mt-20 rounded-3xl border border-neutral-200 bg-neutral-100 p-4 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+          className="relative z-10 mt-20 mx-8 md:mx-16 lg:mx-24 xl:mx-32 rounded-3xl border border-neutral-200 bg-neutral-100 p-4 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
         >
           <div className="w-full overflow-hidden rounded-xl border border-gray-300 dark:border-gray-700">
             <img
