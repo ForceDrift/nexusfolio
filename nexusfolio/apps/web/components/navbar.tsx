@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { cn } from "@workspace/ui/lib/utils"
 
 export function Navbar() {
@@ -88,9 +89,15 @@ export function Navbar() {
           {/* Logo */}
           <Link 
             href="/" 
-            className="text-xl font-bold text-foreground hover:text-primary transition-all duration-200 hover:scale-105"
+            className="flex items-center hover:scale-105 transition-all duration-200"
           >
-            NexusFolio
+            <Image
+              src="/download (2).png"
+              alt="Logo"
+              width={120}
+              height={40}
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Navigation Items */}
