@@ -46,28 +46,28 @@ export function Navbar() {
     { label: "Home", href: "/" },
     { label: "About Us", href: "/about" },
     { label: "Blog", href: "/blog" },
-    { 
-      label: "Discovery", 
-      href: "/discovery",
-      icon: (
-        <svg 
-          width="12" 
-          height="12" 
-          viewBox="0 0 12 12" 
-          fill="none" 
-          className="ml-1 transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:scale-110"
-        >
-          <path 
-            d="M2 10L10 2M10 2H4M10 2V8" 
-            stroke="currentColor" 
-            strokeWidth="1.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-            className="transition-all duration-300 ease-out"
-          />
-        </svg>
-      )
-    }
+    // { 
+    //   label: "Discovery", 
+    //   href: "/discovery",
+    //   icon: (
+    //     <svg 
+    //       width="12" 
+    //       height="12" 
+    //       viewBox="0 0 12 12" 
+    //       fill="none" 
+    //       className="ml-1 transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:scale-110"
+    //     >
+    //       <path 
+    //         d="M2 10L10 2M10 2H4M10 2V8" 
+    //         stroke="currentColor" 
+    //         strokeWidth="1.5" 
+    //         strokeLinecap="round" 
+    //         strokeLinejoin="round"
+    //         className="transition-all duration-300 ease-out"
+    //       />
+    //     </svg>
+    //   )
+    // }
   ]
 
   return (
