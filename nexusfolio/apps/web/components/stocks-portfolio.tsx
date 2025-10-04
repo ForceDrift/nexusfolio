@@ -78,33 +78,25 @@ function StockCard({ stock, onRemove }: { stock: Stock; onRemove: (symbol: strin
             loading: false
           });
         } else {
-          // Fallback to mock data if API fails
-          const mockPrice = Math.random() * 200 + 50;
-          const mockChange = (Math.random() - 0.5) * 10;
-          const mockChangePercent = (mockChange / mockPrice) * 100;
-          
+          // If API fails, show error state instead of random data
           setStockData({
-            price: mockPrice,
-            change: mockChange,
-            changePercent: mockChangePercent,
-            marketCap: formatMarketCap(Math.random() * 1000000000000),
-            volume: formatVolume(Math.random() * 100000000),
+            price: 0,
+            change: 0,
+            changePercent: 0,
+            marketCap: 'Error',
+            volume: 'Error',
             loading: false
           });
         }
       } catch (error) {
         console.error('Error fetching stock data:', error);
-        // Fallback to mock data on error
-        const mockPrice = Math.random() * 200 + 50;
-        const mockChange = (Math.random() - 0.5) * 10;
-        const mockChangePercent = (mockChange / mockPrice) * 100;
-        
+        // Show error state instead of random data
         setStockData({
-          price: mockPrice,
-          change: mockChange,
-          changePercent: mockChangePercent,
-          marketCap: formatMarketCap(Math.random() * 1000000000000),
-          volume: formatVolume(Math.random() * 100000000),
+          price: 0,
+          change: 0,
+          changePercent: 0,
+          marketCap: 'Error',
+          volume: 'Error',
           loading: false
         });
       }

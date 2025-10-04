@@ -65,6 +65,21 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [showStockDetail, setShowStockDetail] = useState(false);
+  const [stockData, setStockData] = useState<{
+    price: number;
+    change: number;
+    changePercent: number;
+    marketCap: string;
+    volume: string;
+    loading: boolean;
+  }>({
+    price: 0,
+    change: 0,
+    changePercent: 0,
+    marketCap: 'N/A',
+    volume: 'N/A',
+    loading: true
+  });
 
   // Debounced search
   useEffect(() => {
@@ -90,6 +105,73 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
+
+  // Fetch real stock data when a stock is selected
+  useEffect(() => {
+    if (!selectedStock) return;
+
+    const fetchStockData = async () => {
+      try {
+        setStockData(prev => ({ ...prev, loading: true }));
+        
+        // Using our stock quote API for real-time data
+        const response = await fetch(`/api/stockQuote?symbol=${selectedStock.symbol}`);
+        const data = await response.json();
+        
+        if (data.stockData) {
+          const stockInfo = data.stockData;
+          
+          setStockData({
+            price: stockInfo.price,
+            change: stockInfo.change,
+            changePercent: stockInfo.changePercent,
+            marketCap: stockInfo.marketCap,
+            volume: stockInfo.volume,
+            loading: false
+          });
+        } else {
+          // If API fails, show error state instead of random data
+          setStockData({
+            price: 0,
+            change: 0,
+            changePercent: 0,
+            marketCap: 'Error',
+            volume: 'Error',
+            loading: false
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching stock data:', error);
+        // Show error state instead of random data
+        setStockData({
+          price: 0,
+          change: 0,
+          changePercent: 0,
+          marketCap: 'Error',
+          volume: 'Error',
+          loading: false
+        });
+      }
+    };
+
+    fetchStockData();
+  }, [selectedStock]);
+
+  // Helper functions to format numbers (same as in stocks-portfolio)
+  const formatMarketCap = (value: number): string => {
+    if (value >= 1e12) return `$${(value / 1e12).toFixed(1)}T`;
+    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
+    if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
+    if (value >= 1e3) return `$${(value / 1e3).toFixed(1)}K`;
+    return `$${value.toFixed(0)}`;
+  };
+
+  const formatVolume = (value: number): string => {
+    if (value >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
+    if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
+    if (value >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
+    return `${value.toFixed(0)}`;
+  };
 
   const handleStockSelect = (stock: Stock) => {
     setSelectedStock(stock);
@@ -119,6 +201,14 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
     setStocks([]);
     setSelectedStock(null);
     setShowStockDetail(false);
+    setStockData({
+      price: 0,
+      change: 0,
+      changePercent: 0,
+      marketCap: 'N/A',
+      volume: 'N/A',
+      loading: true
+    });
     onClose();
   };
 
@@ -197,11 +287,26 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
                     <DollarSign className="w-4 h-4 text-green-600" />
                     <span className="text-xs text-gray-500">Current Price</span>
                   </div>
-                  <p className="text-lg font-semibold text-gray-900">$150.25</p>
-                  <div className="flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3 text-green-600" />
-                    <span className="text-xs text-green-600">+2.5%</span>
-                  </div>
+                  {stockData.loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-6 bg-gray-200 rounded w-16 mb-1"></div>
+                      <div className="h-4 bg-gray-200 rounded w-12"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-lg font-semibold text-gray-900">${stockData.price.toFixed(2)}</p>
+                      <div className="flex items-center gap-1">
+                        {stockData.change >= 0 ? (
+                          <TrendingUp className="w-3 h-3 text-green-600" />
+                        ) : (
+                          <TrendingDown className="w-3 h-3 text-red-600" />
+                        )}
+                        <span className={`text-xs ${stockData.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {stockData.change >= 0 ? '+' : ''}{stockData.changePercent.toFixed(2)}%
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-3">
@@ -209,8 +314,17 @@ export function ManualStockModal({ isOpen, onClose }: ManualStockModalProps) {
                     <BarChart3 className="w-4 h-4 text-blue-600" />
                     <span className="text-xs text-gray-500">Market Cap</span>
                   </div>
-                  <p className="text-lg font-semibold text-gray-900">$2.4T</p>
-                  <span className="text-xs text-gray-500">{selectedStock.exchange}</span>
+                  {stockData.loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-6 bg-gray-200 rounded w-16 mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded w-8"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-lg font-semibold text-gray-900">{stockData.marketCap}</p>
+                      <span className="text-xs text-gray-500">Vol: {stockData.volume}</span>
+                    </>
+                  )}
                 </div>
               </div>
 
