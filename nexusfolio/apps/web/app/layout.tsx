@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { Providers } from "@/components/providers"
-import { Navbar } from "@/components/navbar"
+import { ConditionalNavbar } from "@/components/conditional-navbar"
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -25,8 +25,8 @@ export default function RootLayout({
         className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
       >
         <Providers>
-          <Navbar />
-          <main className="pt-20">
+          <ConditionalNavbar />
+          <main>
             {children}
           </main>
         </Providers>

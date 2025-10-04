@@ -3,7 +3,7 @@ import { Hero } from "@/components/hero"
 
 export default function Page() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-20">
       <Hero />
 
       {/* Content sections to demonstrate scroll effect */}
