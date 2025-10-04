@@ -3,6 +3,7 @@
 import dbConnect from '@/utils/dbConnect';
 import Stock from '@/models/Stock';
 import { isValidObjectId } from 'mongoose';
+import { auth0 } from '@/lib/auth0';
 
 export interface StockData {
   _id: string;
@@ -106,12 +107,23 @@ export async function addUserStock(userId: string, stockCode: string): Promise<A
 }
 
 // DELETE - Remove a stock for a user
-export async function deleteUserStock(stockId: string, userId: string): Promise<ActionResult> {
+export async function deleteUserStock(stockId: string): Promise<ActionResult> {
   try {
     await dbConnect();
     
-    if (!stockId || !userId) {
-      return { success: false, message: 'Stock ID and User ID are required' };
+    // Get user from Auth0 session
+    const session = await auth0.getSession();
+    if (!session?.user) {
+      return { 
+        success: false, 
+        message: 'User not authenticated' 
+      };
+    }
+
+    const userId = session.user.sub;
+    
+    if (!stockId) {
+      return { success: false, message: 'Stock ID is required' };
     }
 
     if (!isValidObjectId(stockId)) {
@@ -129,7 +141,7 @@ export async function deleteUserStock(stockId: string, userId: string): Promise<
 
     return { 
       success: true, 
-      message: 'Stock deleted successfully' 
+      message: `Stock ${deletedStock.stockCode} removed successfully` 
     };
   } catch (error: any) {
     console.error('Failed to delete stock:', error);
