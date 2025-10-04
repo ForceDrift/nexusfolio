@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { addUserStock } from "@/actions/stocks";
+import { useRouter } from "next/navigation";
 
 interface Stock {
   symbol: string;
@@ -62,6 +63,7 @@ function CompanyLogo({ logoUrl, symbol, className }: { logoUrl?: string; symbol:
 }
 
 export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -183,10 +185,9 @@ export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalPr
   };
 
   const handleStockSelect = (stock: Stock) => {
-    setSelectedStock(stock);
-    setShowStockDetail(true);
-    console.log("Selected stock:", stock);
-    console.log("Stock logo URL:", stock.logoUrl);
+    // Navigate to the dynamic route for the stock
+    router.push(`/dashboard/stocks/${encodeURIComponent(stock.symbol)}`);
+    onClose(); // Close the modal
   };
 
   const handleAddToPortfolio = async () => {

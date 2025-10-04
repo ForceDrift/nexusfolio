@@ -4,6 +4,7 @@ import { Building2, TrendingUp, TrendingDown, X } from "lucide-react";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteStockDialog } from "@/components/delete-stock-dialog";
+import { useRouter } from "next/navigation";
 
 interface Stock {
   symbol: string;
@@ -81,6 +82,7 @@ function StockCard({ stock, onRemoveClick: onRemoveClick, stockId }: {
   onRemoveClick: (symbol: string, buttonRect: DOMRect) => void;
   stockId: string;
 }) {
+  const router = useRouter();
   const [stockData, setStockData] = useState<{
     price: number;
     change: number;
@@ -96,6 +98,10 @@ function StockCard({ stock, onRemoveClick: onRemoveClick, stockId }: {
     volume: 'N/A',
     loading: true
   });
+
+  const handleStockClick = () => {
+    router.push(`/dashboard/stocks/${encodeURIComponent(stock.symbol)}`);
+  };
 
   // Fetch real stock data
   useEffect(() => {
@@ -162,7 +168,10 @@ function StockCard({ stock, onRemoveClick: onRemoveClick, stockId }: {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleStockClick}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <CompanyLogo 
@@ -218,6 +227,7 @@ function StockCard({ stock, onRemoveClick: onRemoveClick, stockId }: {
           
           <button
             onClick={(e) => {
+              e.stopPropagation(); // Prevent triggering the card click
               const buttonRect = e.currentTarget.getBoundingClientRect();
               onRemoveClick(stock.symbol, buttonRect);
             }}
