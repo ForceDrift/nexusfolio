@@ -32,7 +32,7 @@ export default async function StocksPage() {
             </div>
             
             {/* Right side - Add Stock Button with Dropdown */}
-            <AddStockDropdown />
+            <AddStockDropdown userId={session.user.sub} />
           </div>
         </div>
 
