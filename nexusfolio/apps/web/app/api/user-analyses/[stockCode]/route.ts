@@ -60,3 +60,58 @@ export async function GET(
     }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { stockCode: string } }
+) {
+  try {
+    // Check authentication
+    const session = await auth0.getSession();
+    if (!session) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Authentication required' 
+        },
+        { status: 401 }
+      );
+    }
+
+    // Connect to database
+    await dbConnect();
+
+    const { stockCode } = await params;
+    const userId = session.user.sub;
+
+    console.log('DELETE request for stockCode:', stockCode, 'userId:', userId);
+
+    // Delete analysis for the specific user and stock
+    const result = await StockAnalysis.deleteOne({ 
+      userId, 
+      stockCode: stockCode.toUpperCase() 
+    });
+
+    console.log('Delete result:', result);
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({
+        success: false,
+        message: 'Analysis not found or not authorized'
+      }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Analysis deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting analysis:', error);
+    return NextResponse.json({
+      success: false,
+      message: 'Failed to delete analysis',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
+}
