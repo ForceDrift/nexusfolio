@@ -635,26 +635,35 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
             
             <div className="mt-8 pt-6 border-t border-gray-200 flex gap-4">
               <button
-                onClick={handleGenerateNews}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                <Image 
-                  src="/Gemini_Logo.png" 
-                  alt="Gemini" 
-                  width={16} 
-                  height={16}
-                  className="w-4 h-4"
-                />
-                Regenerate Analysis
-              </button>
-              
-              <button
                 onClick={async () => {
-                  // Force regenerate by calling the analysis API directly
+                  // Delete existing analysis and regenerate
                   setIsLoading(true);
                   setError(null);
                   
                   try {
+                    // First, delete existing analysis and reports
+                    const deleteAnalysisResponse = await fetch(`/api/user-analyses?stockCode=${encodeURIComponent(symbol)}`, {
+                      method: 'DELETE',
+                    });
+                    
+                    const deleteAnalysisResult = await deleteAnalysisResponse.json();
+                    console.log('Delete analysis response:', deleteAnalysisResult);
+                    
+                    const deleteReportsResponse = await fetch(`/api/reports?stockCode=${encodeURIComponent(symbol)}`, {
+                      method: 'DELETE',
+                    });
+                    
+                    const deleteReportsResult = await deleteReportsResponse.json();
+                    console.log('Delete reports response:', deleteReportsResult);
+                    
+                    // Clear existing data regardless of delete results
+                    setAnalysisData(null);
+                    setSections([]);
+                    setRelatedCompanies([]);
+                    setNodePositions([]);
+                    setSelectedNode(null);
+                    
+                    // Generate new analysis
                     const response = await fetch(`/api/stock-analysis?symbol=${encodeURIComponent(symbol)}`);
                     const result = await response.json();
                     
@@ -662,6 +671,9 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
                       setAnalysisData(result);
                       const extractedSections = extractSections(result.markdownReport);
                       setSections(extractedSections);
+                      
+                      // Fetch company network
+                      await fetchCompanyNetwork(symbol);
                     } else {
                       setError(result.message || 'Failed to regenerate analysis');
                     }
@@ -672,7 +684,7 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
                     setIsLoading(false);
                   }
                 }}
-                className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
               >
                 <Image 
                   src="/Gemini_Logo.png" 
@@ -681,7 +693,7 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
                   height={16}
                   className="w-4 h-4"
                 />
-                Force Regenerate
+                Regenerate Analysis
               </button>
             </div>
           </div>
