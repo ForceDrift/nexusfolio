@@ -169,7 +169,7 @@ function StockCard({ stock, onRemove }: { stock: Stock; onRemove: (symbol: strin
               </div>
             ) : (
               <>
-                <p className="text-sm font-medium text-gray-900">${stockData.marketCap}</p>
+                <p className="text-sm font-medium text-gray-900">{stockData.marketCap}</p>
                 <p className="text-xs text-gray-500">Vol: {stockData.volume}</p>
               </>
             )}
