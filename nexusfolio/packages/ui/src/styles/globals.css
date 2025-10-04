@@ -138,4 +138,18 @@
   .transition-navbar-slow {
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
+  
+  /* Custom scroll animation for marquee */
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-scroll {
+    animation: scroll 20s linear infinite;
+  }
 }

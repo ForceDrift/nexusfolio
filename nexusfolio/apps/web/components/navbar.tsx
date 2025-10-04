@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { cn } from "@workspace/ui/lib/utils"
 
 export function Navbar() {
@@ -45,28 +46,28 @@ export function Navbar() {
     { label: "Home", href: "/" },
     { label: "About Us", href: "/about" },
     { label: "Blog", href: "/blog" },
-    { 
-      label: "Discovery", 
-      href: "/discovery",
-      icon: (
-        <svg 
-          width="12" 
-          height="12" 
-          viewBox="0 0 12 12" 
-          fill="none" 
-          className="ml-1 transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:scale-110"
-        >
-          <path 
-            d="M2 10L10 2M10 2H4M10 2V8" 
-            stroke="currentColor" 
-            strokeWidth="1.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-            className="transition-all duration-300 ease-out"
-          />
-        </svg>
-      )
-    }
+    // { 
+    //   label: "Discovery", 
+    //   href: "/discovery",
+    //   icon: (
+    //     <svg 
+    //       width="12" 
+    //       height="12" 
+    //       viewBox="0 0 12 12" 
+    //       fill="none" 
+    //       className="ml-1 transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:scale-110"
+    //     >
+    //       <path 
+    //         d="M2 10L10 2M10 2H4M10 2V8" 
+    //         stroke="currentColor" 
+    //         strokeWidth="1.5" 
+    //         strokeLinecap="round" 
+    //         strokeLinejoin="round"
+    //         className="transition-all duration-300 ease-out"
+    //       />
+    //     </svg>
+    //   )
+    // }
   ]
 
   return (
@@ -80,7 +81,7 @@ export function Navbar() {
         className={cn(
           "mx-auto px-6 py-4 transition-all duration-300 ease-out",
           isScrolled 
-            ? "max-w-5xl rounded-3xl mt-6 shadow-2xl bg-background/95 backdrop-blur-xl border border-border/20 mx-auto" 
+            ? "max-w-5xl rounded-lg mt-6 shadow-2xl bg-background/95 backdrop-blur-xl border border-border/20 mx-auto" 
             : "max-w-7xl"
         )}
       >
@@ -88,9 +89,15 @@ export function Navbar() {
           {/* Logo */}
           <Link 
             href="/" 
-            className="text-xl font-bold text-foreground hover:text-primary transition-all duration-200 hover:scale-105"
+            className="flex items-center hover:scale-105 transition-all duration-200"
           >
-            NexusFolio
+            <Image
+              src="/download (2).png"
+              alt="Logo"
+              width={120}
+              height={40}
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Navigation Items */}
@@ -111,13 +118,28 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* CTA Button */}
+          {/* Login Link */}
           <div className="hidden md:block">
             <Link
-              href="/contact"
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-all duration-200 shadow-sm hover:shadow-lg hover:scale-105 active:scale-95"
+              href="/login"
+              className="group flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200"
             >
-              Get Started
+              Login
+              <svg 
+                width="12" 
+                height="12" 
+                viewBox="0 0 12 12" 
+                fill="none" 
+                className="ml-1 transition-all duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              >
+                <path 
+                  d="M2 10L10 2M10 2H4M10 2V8" 
+                  stroke="currentColor" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
             </Link>
           </div>
 
