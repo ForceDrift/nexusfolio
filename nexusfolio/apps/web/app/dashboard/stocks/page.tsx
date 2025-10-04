@@ -25,12 +25,7 @@ export default async function StocksPage() {
 
         {/* Title Section */}
         <div className="bg-white px-6 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="w-7 h-7 text-black" />
-              <h1 className="text-lg font-semibold text-gray-900">Stocks Dashboard</h1>
-            </div>
-            
+          <div className="flex items-center justify-end">
             {/* Right side - Add Stock Button with Dropdown */}
             <AddStockDropdown userId={session.user.sub} />
           </div>
