@@ -1,6 +1,9 @@
 import { auth0 } from "../../lib/auth0";
 import { Button } from "@workspace/ui/components/button";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { ProfileDropdown } from "@/components/profile-dropdown";
 
 export default async function Dashboard() {
   const session = await auth0.getSession();
@@ -15,17 +18,21 @@ export default async function Dashboard() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Welcome, {session.user.name}</span>
-              <a href="/auth/logout">
-                <Button variant="outline" size="sm">
-                  Logout
-                </Button>
-              </a>
-            </div>
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <Image
+                src="/download (2).png"
+                alt="Logo"
+                width={200}
+                height={60}
+                className="h-12 w-auto"
+              />
+              <span className="text-gray-400 text-xl">/</span>
+              <span className="text-xl font-semibold text-gray-500">Free</span>
+            </Link>
+            
+            {/* User Profile */}
+            <ProfileDropdown user={session.user} />
           </div>
         </div>
       </header>
