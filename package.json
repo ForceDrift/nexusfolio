@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "@auth0/nextjs-auth0": "^3.8.0"
+    "@auth0/nextjs-auth0": "^3.8.0",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.19.0"
   }
 }
