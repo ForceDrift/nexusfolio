@@ -2,6 +2,7 @@ import { auth0 } from "../../../lib/auth0";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { TrendingUp, BarChart3 } from "lucide-react";
+import { AddStockDropdown } from "@/components/add-stock-dropdown";
 
 export default async function StocksPage() {
   const session = await auth0.getSession();
@@ -29,11 +30,8 @@ export default async function StocksPage() {
               <h1 className="text-lg font-semibold text-gray-900">Stocks Dashboard</h1>
             </div>
             
-            {/* Right side - Add Stock Button */}
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-full flex items-center space-x-1 transition-colors">
-              <BarChart3 className="w-3 h-3" />
-              <span className="text-sm">Add Stock</span>
-            </button>
+            {/* Right side - Add Stock Button with Dropdown */}
+            <AddStockDropdown />
           </div>
         </div>
 
