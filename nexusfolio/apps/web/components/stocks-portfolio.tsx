@@ -4,6 +4,7 @@ import { Building2, TrendingUp, TrendingDown, X } from "lucide-react";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteStockDialog } from "@/components/delete-stock-dialog";
+import { useRouter } from "next/navigation";
 
 interface Stock {
   symbol: string;
@@ -81,6 +82,7 @@ function StockCard({ stock, onRemoveClick: onRemoveClick, stockId }: {
   onRemoveClick: (symbol: string, buttonRect: DOMRect) => void;
   stockId: string;
 }) {
+  const router = useRouter();
   const [stockData, setStockData] = useState<{
     price: number;
     change: number;
@@ -96,6 +98,10 @@ function StockCard({ stock, onRemoveClick: onRemoveClick, stockId }: {
     volume: 'N/A',
     loading: true
   });
+
+  const handleStockClick = () => {
+    router.push(`/dashboard/stocks/${encodeURIComponent(stock.symbol)}`);
+  };
 
   // Fetch real stock data
   useEffect(() => {
@@ -162,7 +168,10 @@ function StockCard({ stock, onRemoveClick: onRemoveClick, stockId }: {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleStockClick}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <CompanyLogo 
@@ -218,6 +227,7 @@ function StockCard({ stock, onRemoveClick: onRemoveClick, stockId }: {
           
           <button
             onClick={(e) => {
+              e.stopPropagation(); // Prevent triggering the card click
               const buttonRect = e.currentTarget.getBoundingClientRect();
               onRemoveClick(stock.symbol, buttonRect);
             }}
@@ -287,67 +297,88 @@ export function StocksPortfolio() {
         setIsLoading(true);
         setError(null);
         
-        const response = await fetch('/api/user-stocks');
+        // Add timeout to prevent infinite loading
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch('/api/user-stocks', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         const data = await response.json();
         
         if (data.success) {
           setUserStocks(data.data);
           
-          // Fetch stock details including logos for each stock
-          const portfolioStocks: Stock[] = [];
+          // Create portfolio stocks with basic info first, then fetch details in parallel
+          const portfolioStocks: Stock[] = data.data.map((userStock: any) => ({
+            symbol: userStock.stockCode,
+            name: `${userStock.stockCode}`, 
+            exchange: 'NASDAQ',
+            type: 'Common Stock',
+            market: 'US',
+            logoUrl: undefined
+          }));
           
-          for (const userStock of data.data) {
+          setPortfolio(portfolioStocks);
+          
+          // Fetch stock details in parallel for better performance
+          const stockDetailsPromises = data.data.map(async (userStock: any) => {
             try {
-              // Fetch stock details using the search API
-              const searchResponse = await fetch(`/api/searchStock?q=${encodeURIComponent(userStock.stockCode)}`);
+              // Add timeout for individual stock searches
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout per stock
+              
+              const searchResponse = await fetch(`/api/searchStock?q=${encodeURIComponent(userStock.stockCode)}`, {
+                signal: controller.signal
+              });
+              clearTimeout(timeoutId);
+              
               const searchData = await searchResponse.json();
               
               if (searchData.stocks && searchData.stocks.length > 0) {
-                // Find exact match or first match
                 const stockMatch = searchData.stocks.find((s: any) => 
                   s.symbol === userStock.stockCode
                 ) || searchData.stocks[0];
                 
-                portfolioStocks.push({
+                return {
                   symbol: stockMatch.symbol,
                   name: stockMatch.name,
                   exchange: stockMatch.exchange,
                   type: stockMatch.type,
                   market: stockMatch.market,
                   logoUrl: stockMatch.logoUrl
-                });
-              } else {
-                // Fallback if search fails
-                portfolioStocks.push({
-                  symbol: userStock.stockCode,
-                  name: `${userStock.stockCode}`, 
-                  exchange: 'NASDAQ',
-                  type: 'Common Stock',
-                  market: 'US',
-                  logoUrl: undefined // Use fallback icon instead of likely broken URL
-                });
+                };
               }
             } catch (searchError) {
               console.error(`Error fetching details for ${userStock.stockCode}:`, searchError);
-              // Fallback if search fails
-              portfolioStocks.push({
-                symbol: userStock.stockCode,
-                name: `${userStock.stockCode}`, 
-                exchange: 'NASDAQ',
-                type: 'Common Stock',
-                market: 'US',
-                logoUrl: undefined // Use fallback icon instead of likely broken URL
-              });
             }
-          }
+            
+            // Return fallback if search fails
+            return {
+              symbol: userStock.stockCode,
+              name: `${userStock.stockCode}`, 
+              exchange: 'NASDAQ',
+              type: 'Common Stock',
+              market: 'US',
+              logoUrl: undefined
+            };
+          });
           
-          setPortfolio(portfolioStocks);
+          // Wait for all stock details to load
+          const detailedStocks = await Promise.all(stockDetailsPromises);
+          setPortfolio(detailedStocks);
         } else {
           setError(data.message || 'Failed to fetch stocks');
         }
       } catch (error) {
         console.error('Error fetching user stocks:', error);
-        setError('Failed to fetch stocks');
+        if (error instanceof Error && error.name === 'AbortError') {
+          setError('Request timed out. Please try again.');
+        } else {
+          setError('Failed to fetch stocks. Please try again.');
+        }
       } finally {
         setIsLoading(false);
       }

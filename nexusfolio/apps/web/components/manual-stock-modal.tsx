@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { addUserStock } from "@/actions/stocks";
+import { useRouter } from "next/navigation";
 
 interface Stock {
   symbol: string;
@@ -62,6 +63,7 @@ function CompanyLogo({ logoUrl, symbol, className }: { logoUrl?: string; symbol:
 }
 
 export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -185,8 +187,6 @@ export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalPr
   const handleStockSelect = (stock: Stock) => {
     setSelectedStock(stock);
     setShowStockDetail(true);
-    console.log("Selected stock:", stock);
-    console.log("Stock logo URL:", stock.logoUrl);
   };
 
   const handleAddToPortfolio = async () => {
@@ -405,21 +405,34 @@ export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalPr
                 </div>
               )}
 
-              {/* Action Button */}
-              <button
-                onClick={handleAddToPortfolio}
-                disabled={isAddingToPortfolio || !userId}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                {isAddingToPortfolio ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Adding to Portfolio...
-                  </>
-                ) : (
-                  'Add to Portfolio'
-                )}
-              </button>
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <button
+                  onClick={handleAddToPortfolio}
+                  disabled={isAddingToPortfolio || !userId}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  {isAddingToPortfolio ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Adding to Portfolio...
+                    </>
+                  ) : (
+                    'Add to Portfolio'
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => {
+                    router.push(`/dashboard/stocks/${encodeURIComponent(selectedStock.symbol)}`);
+                    onClose();
+                  }}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  View Stock Analysis
+                </button>
+              </div>
               
               {!userId && (
                 <p className="text-xs text-gray-500 text-center">
