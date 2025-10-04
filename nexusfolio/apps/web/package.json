@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@auth0/nextjs-auth0": "^4.10.0",
     "@workspace/ui": "workspace:*",
     "framer-motion": "^12.23.22",
     "lucide-react": "^0.475.0",
