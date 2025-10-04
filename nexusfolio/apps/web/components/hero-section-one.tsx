@@ -46,7 +46,7 @@ export function HeroSectionOne() {
             transform: 'translateY(-10%)',
           }}
         >
-          <source src="/videos/hyperspace1.mp4" type="video/mp4" />
+          <source src="/videos/hyperspace2.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         {/* Light overlay for better text readability */}
@@ -68,8 +68,8 @@ export function HeroSectionOne() {
       </div>
       
       <div className="px-4 py-10 md:py-20">
-        <h1 className="relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold text-slate-700 md:text-4xl lg:text-7xl dark:text-slate-300">
-          {"Launch your website in hours, not days"
+        <h1 className="relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold text-black md:text-4xl lg:text-7xl">
+          {"Master your investments with AI-powered insights"
             .split(" ")
             .map((word, index) => (
               <motion.span
@@ -98,7 +98,7 @@ export function HeroSectionOne() {
             duration: 0.3,
             delay: 0.8,
           }}
-          className="relative z-10 mx-auto max-w-xl py-4 text-center text-lg font-normal text-neutral-600 dark:text-neutral-400"
+          className="relative z-10 mx-auto max-w-xl py-4 text-center text-lg font-normal text-black"
         >
           With AI, you can launch your website in hours, not days. Try our best
           in class, state of the art, cutting edge AI tools to get your website
@@ -115,13 +115,25 @@ export function HeroSectionOne() {
             duration: 0.3,
             delay: 1,
           }}
-          className="relative z-10 mt-8 flex flex-wrap items-center justify-center gap-4"
+          className="relative z-10 mt-8 flex items-center justify-center"
         >
-          <button className="w-60 transform rounded-lg bg-black px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
-            Explore Now
-          </button>
-          <button className="w-60 transform rounded-lg border border-gray-300 bg-white px-6 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-100 dark:border-gray-700 dark:bg-black dark:text-white dark:hover:bg-gray-900">
-            Contact Support
+          <button className="flex items-center gap-2 bg-black px-8 py-3 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+            Get Started
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 16 16" 
+              fill="none" 
+              className="transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-1"
+            >
+              <path 
+                d="M4 12L12 4M12 4H6M12 4V10" 
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
         </motion.div>
         <motion.div
