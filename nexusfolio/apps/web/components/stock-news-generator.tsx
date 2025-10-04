@@ -50,6 +50,15 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
   const [error, setError] = useState<string | null>(null);
   const [sections, setSections] = useState<Array<{id: string, title: string, level: number}>>([]);
   const [hasExistingReport, setHasExistingReport] = useState(false);
+  const [relatedCompanies, setRelatedCompanies] = useState<Array<{name: string, relationship: string, impact: 'positive' | 'negative' | 'neutral', description: string, sector: string}>>([]);
+  const [nodePositions, setNodePositions] = useState<Array<{name: string, x: number, y: number}>>([]);
+  const [isLoadingNetwork, setIsLoadingNetwork] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   // Check for existing report on component mount
   useEffect(() => {
@@ -64,6 +73,8 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
             setAnalysisData(result.data);
             const extractedSections = extractSections(result.data.markdownReport);
             setSections(extractedSections);
+            // Fetch company network from API
+            fetchCompanyNetwork(symbol);
             setHasExistingReport(true);
           } else {
             setHasExistingReport(false);
@@ -81,6 +92,39 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
 
     checkExistingReport();
   }, [symbol]);
+
+  // Pan and zoom handlers
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(0.1, Math.min(3, zoom * delta));
+    setZoom(newZoom);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 0) { // Left mouse button
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setPanX(e.clientX - dragStart.x);
+      setPanY(e.clientY - dragStart.y);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const resetView = () => {
+    setZoom(1);
+    setPanX(0);
+    setPanY(0);
+    setSelectedNode(null);
+  };
 
   // Extract sections from markdown content
   const extractSections = (markdown: string) => {
@@ -101,6 +145,48 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
     
     return extractedSections;
   };
+
+  // Calculate and store node positions once
+  const calculateNodePositions = (companies: Array<{name: string, relationship: string, impact: 'positive' | 'negative' | 'neutral', description: string, sector: string}>) => {
+    const centerX = 500;
+    const centerY = 250;
+    
+    return companies.map((company, index) => {
+      // Create more organic positioning with fixed seed for consistency
+      const angle = (index * 2 * Math.PI) / companies.length + (Math.sin(index) * 0.5);
+      const distance = 120 + Math.cos(index * 1.5) * 40;
+      const x = centerX + distance * Math.cos(angle);
+      const y = centerY + distance * Math.sin(angle);
+      return { name: company.name, x, y };
+    });
+  };
+
+  // Fetch company network data from API
+  const fetchCompanyNetwork = async (symbol: string) => {
+    setIsLoadingNetwork(true);
+    try {
+      const response = await fetch(`/api/company-network?symbol=${encodeURIComponent(symbol)}`);
+      const result = await response.json();
+      
+      if (result.success && result.network) {
+        setRelatedCompanies(result.network);
+        setNodePositions(calculateNodePositions(result.network));
+      } else {
+        console.error('Failed to fetch company network:', result.message);
+        // Fallback to empty network
+        setRelatedCompanies([]);
+        setNodePositions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching company network:', error);
+      // Fallback to empty network
+      setRelatedCompanies([]);
+      setNodePositions([]);
+    } finally {
+      setIsLoadingNetwork(false);
+    }
+  };
+
 
 
   const handleGenerateNews = async () => {
@@ -131,6 +217,8 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
         setAnalysisData(result);
         const extractedSections = extractSections(result.markdownReport);
         setSections(extractedSections);
+        // Fetch company network from API
+        fetchCompanyNetwork(symbol);
         setHasExistingReport(true); // Update state after generating
       } else {
         setError(result.message || 'Failed to fetch analysis data');
@@ -154,6 +242,253 @@ export function StockNewsGenerator({ symbol }: StockNewsGeneratorProps) {
           <p className="text-gray-600">
             Generated on {new Date(analysisData.analysisDate).toLocaleDateString()}
           </p>
+        </div>
+
+        {/* Dynamic Network Graph - Obsidian Style */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Company Network Graph</h2>
+            {isLoadingNetwork && (
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                <span>Loading network...</span>
+              </div>
+            )}
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div 
+              className="relative h-[500px] w-full overflow-hidden rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 cursor-grab active:cursor-grabbing"
+              onWheel={handleWheel}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              {/* Background grid */}
+              <div className="absolute inset-0 opacity-30">
+                <svg className="w-full h-full">
+                  <defs>
+                    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#e5e7eb" strokeWidth="0.5"/>
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grid)" />
+                </svg>
+              </div>
+              
+              {/* Graph container with transform */}
+              <div 
+                className="absolute inset-0"
+                style={{
+                  transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
+                  transformOrigin: 'center center',
+                  transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                }}
+              >
+                {/* Connection lines */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+                  {relatedCompanies.map((company, index) => {
+                    const position = nodePositions.find(pos => pos.name === company.name);
+                    if (!position) return null;
+                    
+                    const centerX = 500;
+                    const centerY = 250;
+                    const nodeX = position.x;
+                    const nodeY = position.y;
+                    
+                    return (
+                      <g key={`connection-${index}`}>
+                        <line
+                          x1={`${(centerX / 1000) * 100}%`}
+                          y1={`${(centerY / 500) * 100}%`}
+                          x2={`${(nodeX / 1000) * 100}%`}
+                          y2={`${(nodeY / 500) * 100}%`}
+                          stroke={
+                            company.impact === 'positive'
+                              ? '#10b981'
+                              : company.impact === 'negative'
+                              ? '#ef4444'
+                              : '#6b7280'
+                          }
+                          strokeWidth="1.5"
+                          opacity="0.4"
+                          className="transition-all duration-300"
+                        />
+                        <line
+                          x1={`${(centerX / 1000) * 100}%`}
+                          y1={`${(centerY / 500) * 100}%`}
+                          x2={`${(nodeX / 1000) * 100}%`}
+                          y2={`${(nodeY / 500) * 100}%`}
+                          stroke={
+                            company.impact === 'positive'
+                              ? '#10b981'
+                              : company.impact === 'negative'
+                              ? '#ef4444'
+                              : '#6b7280'
+                          }
+                          strokeWidth="2"
+                          opacity="0.1"
+                          className="animate-pulse"
+                        />
+                      </g>
+                    );
+                  })}
+                </svg>
+                
+                {/* Central company node */}
+                <div 
+                  className="absolute w-16 h-16 rounded-full bg-blue-600 border-4 border-white shadow-xl flex items-center justify-center cursor-pointer"
+                  style={{
+                    left: 'calc(50% - 32px)',
+                    top: 'calc(50% - 32px)',
+                    zIndex: 3
+                  }}
+                >
+                  <span className="text-white text-sm font-bold">{analysisData.symbol}</span>
+                </div>
+                
+                {/* Company nodes with Next.js Image */}
+                {relatedCompanies.map((company, index) => {
+                  const position = nodePositions.find(pos => pos.name === company.name);
+                  if (!position) return null;
+                  
+                  const isSelected = selectedNode === company.name;
+                  
+                  return (
+                    <div
+                      key={`node-${index}`}
+                      className={`absolute w-9 h-9 rounded-full border-2 border-white shadow-lg cursor-pointer flex items-center justify-center overflow-hidden ${
+                        isSelected ? 'ring-4 ring-blue-500 ring-opacity-50' : ''
+                      }`}
+                      style={{
+                        left: `${(position.x / 1000) * 100}%`,
+                        top: `${(position.y / 500) * 100}%`,
+                        transform: 'translate(-50%, -50%)',
+                        backgroundColor: company.impact === 'positive' ? '#10b981' : 
+                                       company.impact === 'negative' ? '#ef4444' : '#6b7280',
+                        zIndex: 2
+                      }}
+                      onClick={() => setSelectedNode(selectedNode === company.name ? null : company.name)}
+                    >
+                      <Image
+                        src={`https://logo.clearbit.com/${company.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.com`}
+                        alt={company.name}
+                        width={28}
+                        height={28}
+                        className="rounded-full"
+                        onError={(e) => {
+                          // Fallback to text if image fails
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `<span class="text-white text-xs font-bold">${company.name.substring(0, 3).toUpperCase()}</span>`;
+                          }
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Interactive controls */}
+              <div className="absolute top-4 right-4 flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setZoom(Math.min(3, zoom * 1.2))}
+                    className="px-3 py-1 text-xs bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+                  >
+                    Zoom In
+                  </button>
+                  <button
+                    onClick={() => setZoom(Math.max(0.1, zoom * 0.8))}
+                    className="px-3 py-1 text-xs bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+                  >
+                    Zoom Out
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedNode(null)}
+                    className="px-3 py-1 text-xs bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+                  >
+                    Clear Selection
+                  </button>
+                  <button
+                    onClick={resetView}
+                    className="px-3 py-1 text-xs bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+                  >
+                    Reset View
+                  </button>
+                </div>
+                <div className="text-xs text-gray-500 bg-white px-2 py-1 rounded shadow-sm border border-gray-200">
+                  Zoom: {Math.round(zoom * 100)}%
+                </div>
+              </div>
+            </div>
+            
+            {/* Enhanced legend and info panel */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="flex flex-wrap gap-4 text-sm mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                  <span className="text-gray-600">Positive Impact</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-red-500"></div>
+                  <span className="text-gray-600">Negative Impact</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-gray-400"></div>
+                  <span className="text-gray-600">Neutral Impact</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+                  <span className="text-gray-600">Target Company</span>
+                </div>
+              </div>
+              
+              {/* Selected node details */}
+              {selectedNode && (
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h3 className="font-semibold text-blue-900 mb-2">Selected: {selectedNode}</h3>
+                  {(() => {
+                    const company = relatedCompanies.find(c => c.name === selectedNode);
+                    return company ? (
+                      <div className="space-y-2">
+                        <p className="text-sm text-blue-700">
+                          <span className="font-medium">Relationship:</span> {company.relationship}
+                        </p>
+                        <p className="text-sm text-blue-700">
+                          <span className="font-medium">Sector:</span> {company.sector}
+                        </p>
+                        <p className="text-sm text-blue-700">
+                          <span className="font-medium">Impact:</span> 
+                          <span className={`ml-1 px-2 py-1 rounded-full text-xs ${
+                            company.impact === 'positive'
+                              ? 'bg-green-100 text-green-800'
+                              : company.impact === 'negative'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {company.impact.charAt(0).toUpperCase() + company.impact.slice(1)}
+                          </span>
+                        </p>
+                        <p className="text-sm text-blue-600 mt-2">
+                          {company.description}
+                        </p>
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              )}
+              
+              {/* Instructions */}
+              <div className="text-xs text-gray-500 mb-4">
+                💡 Click to select nodes • Drag to pan • Scroll to zoom • Use controls to reset view
+              </div>
+            </div>
+          </div>
         </div>
         
         <div className="flex gap-8">
