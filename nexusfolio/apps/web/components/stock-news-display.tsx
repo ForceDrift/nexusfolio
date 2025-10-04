@@ -55,9 +55,11 @@ export function StockNewsDisplay({ data }: StockNewsDisplayProps) {
   };
 
   const sections = [
-    { id: 'overview', title: 'Overview' },
-    { id: 'news', title: 'Latest News' },
-    { id: 'analysis', title: 'Analysis' },
+    { id: 'overview', title: 'Executive Summary' },
+    { id: 'history', title: 'Company History' },
+    { id: 'news', title: 'Recent News' },
+    { id: 'publicity', title: 'Media & Publicity' },
+    { id: 'analysis', title: 'Market Analysis' },
     { id: 'risks', title: 'Risk Factors' }
   ];
 
@@ -190,6 +192,42 @@ export function StockNewsDisplay({ data }: StockNewsDisplayProps) {
               </blockquote>
             </div>
 
+            {/* Company History Section */}
+            <div id="history" className="mb-12">
+              <h2>Company History & Background</h2>
+              
+              <h3>Founding & Early Years</h3>
+              <p>
+                <strong>{data.companyName}</strong> has established itself as a significant player in its industry through 
+                decades of innovation and strategic growth. The company's journey from its founding to its current market 
+                position reflects a commitment to excellence and adaptability in changing market conditions.
+              </p>
+
+              <h3>Key Milestones</h3>
+              <ul>
+                <li><strong>Foundation:</strong> Company established with a vision to revolutionize its industry</li>
+                <li><strong>IPO Launch:</strong> Successful public offering marking a new era of growth and expansion</li>
+                <li><strong>Major Acquisitions:</strong> Strategic acquisitions that expanded market reach and capabilities</li>
+                <li><strong>International Expansion:</strong> Global market entry and establishment of international operations</li>
+                <li><strong>Innovation Leadership:</strong> Pioneering new technologies and industry standards</li>
+              </ul>
+
+              <h3>Corporate Evolution</h3>
+              <p>
+                Over the years, {data.companyName} has evolved from a startup to a market leader, demonstrating 
+                resilience through economic cycles and adaptability to technological changes. The company's 
+                management team has consistently focused on long-term value creation while maintaining 
+                operational excellence.
+              </p>
+
+              <h3>Recent Strategic Developments</h3>
+              <p>
+                In recent years, the company has undertaken significant strategic initiatives including digital 
+                transformation, sustainability programs, and market expansion. These efforts have positioned 
+                {data.companyName} for continued growth in an increasingly competitive landscape.
+              </p>
+            </div>
+
             {/* News Section */}
             <div id="news" className="mb-12">
               <h2>Latest News & Developments</h2>
@@ -217,6 +255,52 @@ export function StockNewsDisplay({ data }: StockNewsDisplayProps) {
                 Within the broader industry context, {data.companyName} continues to demonstrate leadership 
                 in key areas of innovation and market expansion. The company's ability to adapt to changing 
                 market conditions while maintaining growth momentum has been particularly noteworthy.
+              </p>
+            </div>
+
+            {/* Media & Publicity Section */}
+            <div id="publicity" className="mb-12">
+              <h2>Media Coverage & Publicity</h2>
+              
+              <h3>Recent Press Coverage</h3>
+              <p>
+                <strong>{data.companyName}</strong> has maintained a strong presence in financial media, with 
+                consistent coverage across major publications and investment platforms. The company's recent 
+                developments have generated significant media attention and analyst interest.
+              </p>
+
+              <h3>Analyst Reports & Coverage</h3>
+              <ul>
+                <li><strong>Investment Banks:</strong> Multiple analyst reports from leading financial institutions</li>
+                <li><strong>Price Targets:</strong> Recent price target adjustments reflecting market sentiment</li>
+                <li><strong>Rating Changes:</strong> Analyst rating updates based on recent performance</li>
+                <li><strong>Research Coverage:</strong> Comprehensive research reports from equity analysts</li>
+              </ul>
+
+              <h3>Social Media & Public Sentiment</h3>
+              <p>
+                The company's social media presence and public sentiment have remained generally positive, 
+                with investors and customers expressing confidence in the company's strategic direction. 
+                Online discussions reflect optimism about future growth prospects and market positioning.
+              </p>
+
+              <h3>Media Highlights</h3>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h4 className="text-blue-800 font-semibold mb-2">Featured Coverage</h4>
+                <ul className="text-blue-700 space-y-1">
+                  <li>• Featured in major financial publications for recent earnings performance</li>
+                  <li>• CEO interviews and executive commentary in industry media</li>
+                  <li>• Product launches and strategic announcements covered widely</li>
+                  <li>• Analyst conference calls and investor presentations well-attended</li>
+                </ul>
+              </div>
+
+              <h3>Public Relations & Communications</h3>
+              <p>
+                The company's public relations efforts have been effective in communicating its value 
+                proposition to investors and stakeholders. Regular updates on strategic initiatives, 
+                financial performance, and market developments have maintained transparency and 
+                investor confidence.
               </p>
             </div>
 
