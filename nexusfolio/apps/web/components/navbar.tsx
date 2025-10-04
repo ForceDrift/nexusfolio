@@ -72,17 +72,14 @@ export function Navbar() {
 
   return (
     <nav 
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out",
-        scrollDirection === 'down' && isScrolled ? "-translate-y-full" : "translate-y-0"
-      )}
+      className="fixed top-0 left-0 right-0 z-50"
     >
       <div 
         className={cn(
           "mx-auto px-6 py-4 transition-all duration-300 ease-out",
           isScrolled 
             ? "max-w-5xl rounded-lg mt-6 shadow-2xl bg-background/95 backdrop-blur-xl border border-border/20 mx-auto" 
-            : "max-w-7xl"
+            : "max-w-full bg-background border-b border-border"
         )}
       >
         <div className="flex items-center justify-between">
