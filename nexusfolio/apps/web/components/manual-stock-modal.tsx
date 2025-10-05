@@ -262,6 +262,13 @@ export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalPr
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
+            <Image 
+              src="/Alpaca_Logo.png" 
+              alt="Alpaca" 
+              width={20} 
+              height={20} 
+              className="w-5 h-5"
+            />
             <TrendingUp className="w-5 h-5" />
             Add Stock Manually
           </DialogTitle>
