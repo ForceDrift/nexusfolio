@@ -8,7 +8,7 @@ export default function BlogPost() {
         <h3 className="text-sm font-semibold text-gray-600 mb-6">Table of Contents</h3>
         <nav className="space-y-2">
           <a href="#introduction" className="block text-gray-900 text-sm hover:text-gray-600 transition-colors">
-            > Introduction
+            &gt; Introduction
           </a>
           <a href="#architecture" className="block text-gray-600 text-sm hover:text-gray-900 transition-colors">
             Building for Scale and Security
