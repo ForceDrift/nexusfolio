@@ -1,0 +1,156 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient definitions -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="cube1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0.8" />
+    </linearGradient>
+    
+    <linearGradient id="cube2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:0.8" />
+    </linearGradient>
+    
+    <linearGradient id="cube3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:0.8" />
+    </linearGradient>
+    
+    <linearGradient id="cube4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ec4899;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#db2777;stop-opacity:0.8" />
+    </linearGradient>
+    
+    <!-- Glow effects -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Connecting line gradient -->
+    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:0.6" />
+      <stop offset="50%" style="stop-color:#10b981;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#bgGradient)"/>
+  
+  <!-- Background pattern -->
+  <circle cx="100" cy="80" r="3" fill="#ffffff" opacity="0.1"/>
+  <circle cx="300" cy="120" r="2" fill="#ffffff" opacity="0.1"/>
+  <circle cx="500" cy="60" r="4" fill="#ffffff" opacity="0.1"/>
+  <circle cx="800" cy="100" r="2" fill="#ffffff" opacity="0.1"/>
+  <circle cx="1000" cy="80" r="3" fill="#ffffff" opacity="0.1"/>
+  <circle cx="1100" cy="150" r="2" fill="#ffffff" opacity="0.1"/>
+  
+  <!-- Plus signs -->
+  <g fill="#ffffff" opacity="0.1">
+    <rect x="150" y="200" width="8" height="2"/>
+    <rect x="153" y="197" width="2" height="8"/>
+    <rect x="350" y="180" width="6" height="2"/>
+    <rect x="352" y="178" width="2" height="6"/>
+    <rect x="700" y="220" width="8" height="2"/>
+    <rect x="703" y="217" width="2" height="8"/>
+  </g>
+  
+  <!-- Connecting lines -->
+  <path d="M 200 300 Q 400 250 600 280 T 1000 300" stroke="url(#lineGradient)" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M 150 250 Q 350 200 550 230 T 950 250" stroke="#fbbf24" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M 250 320 Q 450 270 650 300 T 1050 320" stroke="#10b981" stroke-width="1.5" fill="none" opacity="0.6"/>
+  
+  <!-- Cube 1 - Yellow (Portfolio) -->
+  <g transform="translate(150, 280) rotate(15)">
+    <path d="M 0 0 L 40 0 L 50 10 L 10 10 Z" fill="url(#cube1)" filter="url(#glow)"/>
+    <path d="M 40 0 L 50 10 L 50 50 L 40 40 Z" fill="url(#cube1)" opacity="0.7"/>
+    <path d="M 0 10 L 10 10 L 40 40 L 30 40 Z" fill="url(#cube1)" opacity="0.5"/>
+    <!-- Portfolio icon inside -->
+    <g transform="translate(15, 20)">
+      <rect x="0" y="0" width="20" height="15" fill="#1f2937" rx="2"/>
+      <rect x="2" y="2" width="16" height="2" fill="#fbbf24"/>
+      <rect x="2" y="5" width="12" height="1" fill="#fbbf24"/>
+      <rect x="2" y="7" width="14" height="1" fill="#fbbf24"/>
+      <rect x="2" y="9" width="10" height="1" fill="#fbbf24"/>
+    </g>
+  </g>
+  
+  <!-- Cube 2 - Teal (Analytics) -->
+  <g transform="translate(400, 250) rotate(-10)">
+    <path d="M 0 0 L 40 0 L 50 10 L 10 10 Z" fill="url(#cube2)" filter="url(#glow)"/>
+    <path d="M 40 0 L 50 10 L 50 50 L 40 40 Z" fill="url(#cube2)" opacity="0.7"/>
+    <path d="M 0 10 L 10 10 L 40 40 L 30 40 Z" fill="url(#cube2)" opacity="0.5"/>
+    <!-- Chart icon inside -->
+    <g transform="translate(15, 20)">
+      <rect x="0" y="20" width="3" height="10" fill="#ffffff"/>
+      <rect x="4" y="15" width="3" height="15" fill="#ffffff"/>
+      <rect x="8" y="10" width="3" height="20" fill="#ffffff"/>
+      <rect x="12" y="5" width="3" height="25" fill="#ffffff"/>
+      <rect x="16" y="12" width="3" height="18" fill="#ffffff"/>
+    </g>
+  </g>
+  
+  <!-- Cube 3 - Purple (AI) -->
+  <g transform="translate(700, 200) rotate(20)">
+    <path d="M 0 0 L 40 0 L 50 10 L 10 10 Z" fill="url(#cube3)" filter="url(#glow)"/>
+    <path d="M 40 0 L 50 10 L 50 50 L 40 40 Z" fill="url(#cube3)" opacity="0.7"/>
+    <path d="M 0 10 L 10 10 L 40 40 L 30 40 Z" fill="url(#cube3)" opacity="0.5"/>
+    <!-- AI/Brain icon inside -->
+    <g transform="translate(15, 20)">
+      <circle cx="10" cy="15" r="8" fill="#ffffff"/>
+      <circle cx="7" cy="12" r="2" fill="#8b5cf6"/>
+      <circle cx="13" cy="12" r="2" fill="#8b5cf6"/>
+      <path d="M 6 18 Q 10 22 14 18" stroke="#8b5cf6" stroke-width="1.5" fill="none"/>
+    </g>
+  </g>
+  
+  <!-- Cube 4 - Pink (Code) -->
+  <g transform="translate(950, 220) rotate(-15)">
+    <path d="M 0 0 L 40 0 L 50 10 L 10 10 Z" fill="url(#cube4)" filter="url(#glow)"/>
+    <path d="M 40 0 L 50 10 L 50 50 L 40 40 Z" fill="url(#cube4)" opacity="0.7"/>
+    <path d="M 0 10 L 10 10 L 40 40 L 30 40 Z" fill="url(#cube4)" opacity="0.5"/>
+    <!-- Code icon inside -->
+    <g transform="translate(15, 20)">
+      <text x="5" y="15" font-family="monospace" font-size="8" fill="#ffffff">&lt;/&gt;</text>
+    </g>
+  </g>
+  
+  <!-- Main text -->
+  <text x="200" y="120" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#ffffff">
+    Invest
+  </text>
+  <text x="200" y="160" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#fbbf24">
+    with intelligence
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="200" y="190" font-family="Arial, sans-serif" font-size="18" fill="#e5e7eb" opacity="0.9">
+    AI-powered investment platform with personalized portfolio insights
+  </text>
+  
+  <!-- Logo and brand -->
+  <g transform="translate(900, 80)">
+    <!-- NexusFolio logo -->
+    <circle cx="20" cy="20" r="18" fill="#fbbf24" opacity="0.9"/>
+    <text x="20" y="26" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1f2937" text-anchor="middle">N</text>
+    
+    <!-- Brand text -->
+    <text x="50" y="30" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff">
+      NexusFolio
+    </text>
+  </g>
+  
+  <!-- Additional connecting lines -->
+  <path d="M 200 300 Q 300 280 400 290" stroke="#fbbf24" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M 600 280 Q 700 270 800 280" stroke="#10b981" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M 800 280 Q 900 270 1000 280" stroke="#8b5cf6" stroke-width="2" fill="none" opacity="0.5"/>
+</svg>
