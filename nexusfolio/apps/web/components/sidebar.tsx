@@ -18,6 +18,7 @@ interface SidebarProps {
 
 export function Sidebar({ className, user }: SidebarProps) {
   const [activeSection, setActiveSection] = useState("stocks")
+  const [isNexusDropdownOpen, setIsNexusDropdownOpen] = useState(false)
 
   const sections = [
     {
@@ -49,16 +50,29 @@ export function Sidebar({ className, user }: SidebarProps) {
         </svg>
       ),
       href: "/dashboard/collaborative-portfolio"
-    },
+    }
+  ]
+
+  const nexusDropdownItems = [
     {
-      id: "nexus",
-      title: "Nexus",
+      id: "nexus-main",
+      title: "Nexus Overview",
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       ),
       href: "/dashboard/nexus"
+    },
+    {
+      id: "create-video",
+      title: "Create A Video",
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      ),
+      href: "/dashboard/nexus/create-video"
     }
   ]
 
@@ -107,6 +121,57 @@ export function Sidebar({ className, user }: SidebarProps) {
                 </svg>
               </Link>
             ))}
+            
+            {/* Nexus Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsNexusDropdownOpen(!isNexusDropdownOpen)}
+                className={cn(
+                  "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors group",
+                  activeSection === "nexus"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <div className="flex items-center space-x-3">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span>Nexus</span>
+                </div>
+                <svg 
+                  className={cn(
+                    "w-4 h-4 transition-transform",
+                    isNexusDropdownOpen ? "rotate-180" : ""
+                  )} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {/* Dropdown Menu */}
+              {isNexusDropdownOpen && (
+                <div className="ml-4 mt-1 space-y-1">
+                  {nexusDropdownItems.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={() => {
+                        setActiveSection("nexus")
+                        setIsNexusDropdownOpen(false)
+                      }}
+                      className="flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors group hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/80"
+                    >
+                      {item.icon}
+                      <span>{item.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </nav>
         </div>
 
