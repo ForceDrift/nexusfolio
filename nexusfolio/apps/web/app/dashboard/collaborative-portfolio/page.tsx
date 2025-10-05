@@ -2,7 +2,7 @@ import { auth0 } from "../../../lib/auth0";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 
-export default async function PortfolioPage() {
+export default async function CollaborativePortfolioPage() {
   const session = await auth0.getSession();
 
   if (!session) {
@@ -18,17 +18,17 @@ export default async function PortfolioPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
-          <h1 className="text-2xl font-bold text-card-foreground">Portfolio</h1>
-          <p className="text-muted-foreground">View and manage your complete investment portfolio</p>
+          <h1 className="text-2xl font-bold text-card-foreground">Collaborative Portfolio</h1>
+          <p className="text-muted-foreground">View and manage your complete investment portfolio with collaboration features</p>
         </header>
 
         {/* Main Content */}
         <main className="flex-1 p-6 overflow-auto">
           <div className="border-4 border-dashed border-border rounded-lg h-96 flex items-center justify-center">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Portfolio Dashboard</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Collaborative Portfolio Dashboard</h2>
               <p className="text-muted-foreground mb-6">
-                This is the Portfolio page placeholder. Here you'll be able to:
+                This is the Collaborative Portfolio page placeholder. Here you'll be able to:
               </p>
               <div className="space-y-4 max-w-md mx-auto">
                 <div className="bg-card p-4 rounded-lg border border-border text-left">
@@ -39,6 +39,8 @@ export default async function PortfolioPage() {
                     <li>• Monitor portfolio value changes</li>
                     <li>• Analyze investment returns and metrics</li>
                     <li>• Rebalance portfolio automatically</li>
+                    <li>• Collaborate with other investors</li>
+                    <li>• Share portfolio insights</li>
                   </ul>
                 </div>
               </div>
