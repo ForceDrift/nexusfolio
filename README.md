@@ -1,7 +1,7 @@
 # NexusFolio - AI-Powered Investment Platform
 
 <div align="center">
-  <img src="banner.svg" alt="NexusFolio Banner" width="100%"/>
+  <img src="banner.png" alt="NexusFolio Banner" width="100%"/>
 </div>
 
 > **"AI investment advisor that gives personalized advice based on your actual stock portfolio."**
