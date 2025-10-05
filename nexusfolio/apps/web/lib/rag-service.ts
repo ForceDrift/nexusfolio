@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { portfolioService, type Stock } from './portfolio';
-import { semanticSearchService, type SemanticSearchResult } from './semantic-search';
+import { PortfolioService, SAMPLE_PORTFOLIO, type Stock } from './portfolio';
+import { SemanticSearchService, type SemanticSearchResult } from './semantic-search';
 
 export interface RAGResponse {
   response: string;
@@ -12,8 +12,11 @@ export interface RAGResponse {
 export class RAGService {
   private genAI: GoogleGenerativeAI;
   private model: any;
+  private userId?: string;
+  private portfolioService: PortfolioService;
+  private semanticSearchService: SemanticSearchService;
 
-  constructor() {
+  constructor(userId?: string) {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     this.model = this.genAI.getGenerativeModel({ 
       model: "gemini-2.0-flash-lite",
@@ -24,20 +27,38 @@ export class RAGService {
         maxOutputTokens: 1024,
       },
     });
+    this.userId = userId;
+    this.portfolioService = new PortfolioService(undefined, userId);
+    this.semanticSearchService = new SemanticSearchService(userId);
   }
 
   async generateRAGResponse(userQuery: string): Promise<RAGResponse> {
     console.log('RAG Service: Starting vector-based RAG analysis for query:', userQuery);
+    console.log('RAG Service: User ID:', this.userId || 'anonymous');
     
     try {
       // Step 1: Analyze user query and identify relevant stocks
-      const relevantStocks = this.identifyRelevantStocks(userQuery);
+      const relevantStocks = await this.identifyRelevantStocks(userQuery);
       console.log('RAG Service: Identified relevant stocks:', relevantStocks);
 
       // Step 2: Perform semantic search using vector database
-      const searchResult = await semanticSearchService.searchRelevantContext(userQuery, relevantStocks);
-      console.log('RAG Service: Found', searchResult.relevantDocuments.length, 'relevant documents');
-      console.log('RAG Service: Sources:', searchResult.sources);
+      let searchResult;
+      try {
+        searchResult = await this.semanticSearchService.searchRelevantContext(userQuery, relevantStocks);
+        console.log('RAG Service: Found', searchResult.relevantDocuments.length, 'relevant documents');
+        console.log('RAG Service: Sources:', searchResult.sources);
+      } catch (searchError) {
+        console.warn('RAG Service: Semantic search failed, using fallback context:', searchError);
+        // Create a fallback search result
+        searchResult = {
+          query: userQuery,
+          relevantDocuments: [],
+          context: `User query: ${userQuery}. Portfolio context: ${await this.getPortfolioContext()}`,
+          sources: ['Portfolio Analysis'],
+          symbols: relevantStocks,
+          sectors: []
+        };
+      }
 
       // Step 3: Generate contextual response using semantic search results
       const response = await this.generateContextualResponse(userQuery, searchResult.context, relevantStocks);
@@ -56,20 +77,38 @@ export class RAGService {
       };
     } catch (error) {
       console.error('RAG Service: Error generating vector-based response:', error);
-      throw new Error('Failed to generate RAG response. Please try again.');
+      
+      // Provide more specific error information
+      if (error instanceof Error) {
+        console.error('RAG Service: Error details:', error.message);
+        console.error('RAG Service: Stack trace:', error.stack);
+      }
+      
+      throw new Error(`Failed to generate RAG response: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  private identifyRelevantStocks(query: string): string[] {
-    const portfolio = portfolioService.getPortfolio();
-    const relevantStocks = portfolioService.getRelevantStocks(query);
-    
-    // If no specific stocks mentioned, return top holdings
-    if (relevantStocks.length === 0) {
-      return portfolioService.getTopHoldings(3).map(stock => stock.symbol);
+  private async identifyRelevantStocks(query: string): Promise<string[]> {
+    try {
+      const portfolio = await this.portfolioService.getPortfolio();
+      console.log('RAG Service: Portfolio loaded with', portfolio.stocks.length, 'stocks');
+      
+      const relevantStocks = await this.portfolioService.getRelevantStocks(query);
+      console.log('RAG Service: Found', relevantStocks.length, 'relevant stocks from query');
+      
+      // If no specific stocks mentioned, return top holdings
+      if (relevantStocks.length === 0) {
+        const topHoldings = await this.portfolioService.getTopHoldings(3);
+        console.log('RAG Service: Using top holdings:', topHoldings.map(s => s.symbol));
+        return topHoldings.map(stock => stock.symbol);
+      }
+      
+      return relevantStocks.map(stock => stock.symbol);
+    } catch (error) {
+      console.error('RAG Service: Error identifying relevant stocks:', error);
+      // Return empty array if there's an error
+      return [];
     }
-    
-    return relevantStocks.map(stock => stock.symbol);
   }
 
   private async generateContextualResponse(
@@ -77,8 +116,8 @@ export class RAGService {
     semanticContext: string, 
     relevantStocks: string[]
   ): Promise<string> {
-    const portfolio = portfolioService.getPortfolio();
-    const portfolioContext = this.buildPortfolioContext(portfolio);
+    const portfolio = await this.portfolioService.getPortfolio();
+    const portfolioContext = await this.buildPortfolioContext(portfolio);
     
     const prompt = `You are InvestAI, an expert AI investment advisor with access to comprehensive market analysis and real-time financial data.
 
@@ -115,9 +154,14 @@ Generate a comprehensive, personalized response that leverages the semantic sear
     }
   }
 
-  private buildPortfolioContext(portfolio: any): string {
-    const topHoldings = portfolioService.getTopHoldings(5);
-    const sectorAllocation = portfolioService.getSectorAllocation();
+  private async getPortfolioContext(): Promise<string> {
+    const portfolio = await this.portfolioService.getPortfolio();
+    return await this.buildPortfolioContext(portfolio);
+  }
+
+  private async buildPortfolioContext(portfolio: any): Promise<string> {
+    const topHoldings = await this.portfolioService.getTopHoldings(5);
+    const sectorAllocation = await this.portfolioService.getSectorAllocation();
     
     return `
 Portfolio Holdings (Top 5):
