@@ -46,7 +46,7 @@ export function HeroSectionOne() {
             transform: 'translateY(-10%)',
           }}
         >
-          <source src="/videos/hyperspace1.mp4" type="video/mp4" />
+          <source src="/hyperspace2.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         {/* Light overlay for better text readability */}
@@ -149,12 +149,12 @@ export function HeroSectionOne() {
             duration: 0.3,
             delay: 1.2,
           }}
-          className="relative z-10 mt-20 mx-8 md:mx-16 lg:mx-24 xl:mx-32 rounded-3xl border border-neutral-200 bg-neutral-100 p-4 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+          className="relative z-10 mt-20 rounded-3xl border border-neutral-200 bg-neutral-100 p-4 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
         >
           <div className="w-full overflow-hidden rounded-xl border border-gray-300 dark:border-gray-700">
             <img
-              src="https://assets.aceternity.com/pro/aceternity-landing.webp"
-              alt="Landing page preview"
+              src="/Dashboard.png"
+              alt="NexusFolio Dashboard Preview"
               className="aspect-[16/9] h-auto w-full object-cover"
               height={1000}
               width={1000}
@@ -165,3 +165,4 @@ export function HeroSectionOne() {
     </div>
   );
 }
+

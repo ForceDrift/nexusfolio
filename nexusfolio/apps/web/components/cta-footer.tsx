@@ -76,7 +76,7 @@ export default function CTAFooter() {
   ];
 
   return (
-    <div className="bg-slate-900">
+    <div className="bg-neutral-900">
       <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Left Section - CTA */}
