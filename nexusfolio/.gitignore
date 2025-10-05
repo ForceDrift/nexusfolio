@@ -28,6 +28,7 @@ build
 dist
 
 # Google Cloud credentials
+crypto-pulsar-442221-s9-473102e1ee61.json
 credentials/
 *.json
 !package.json

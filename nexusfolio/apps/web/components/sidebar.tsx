@@ -200,4 +200,3 @@ export function Sidebar({ className, user }: SidebarProps) {
     </div>
   )
 }
-
