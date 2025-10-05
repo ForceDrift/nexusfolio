@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { uploadVideoToGCS } from '@/lib/gcs';
 import { dbConnect } from '@/lib/mongodb';
 import Video from '@/models/Video';
+import User from '@/models/User';
 import { auth0 } from '@/lib/auth0';
 
 export async function POST(request: NextRequest) {
@@ -57,12 +58,36 @@ export async function POST(request: NextRequest) {
     // Connect to database
     await dbConnect();
 
+    // Ensure user exists in database (create or update)
+    let user = await User.findById(session.user.sub);
+    if (!user) {
+      // Create new user
+      user = new User({
+        _id: session.user.sub,
+        name: session.user.name || 'Unknown User',
+        email: session.user.email || '',
+        picture: session.user.picture || '',
+        sub: session.user.sub
+      });
+      await user.save();
+      console.log('Created new user:', user.name);
+    } else {
+      // Update existing user info (in case it changed)
+      user.name = session.user.name || user.name;
+      user.email = session.user.email || user.email;
+      user.picture = session.user.picture || user.picture;
+      await user.save();
+      console.log('Updated user info:', user.name);
+    }
+
     // Parse tags
     const tagsArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
 
     // Create video document
     const videoDoc = new Video({
       userId: session.user.sub,
+      displayName: session.user.name || 'Unknown User',
+      profileIcon: session.user.picture || '',
       title: title.trim(),
       description: description?.trim(),
       category: category || 'other',

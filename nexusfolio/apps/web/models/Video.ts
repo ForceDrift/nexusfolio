@@ -3,6 +3,8 @@ import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IVideo extends Document {
   userId: string;
+  displayName: string;
+  profileIcon?: string;
   title: string;
   description?: string;
   category?: string;
@@ -31,6 +33,16 @@ const VideoSchema: Schema = new Schema(
       type: String,
       required: [true, 'User ID is required'],
       index: true,
+    },
+    displayName: {
+      type: String,
+      required: [true, 'Display name is required'],
+      trim: true,
+      maxlength: [100, 'Display name cannot exceed 100 characters'],
+    },
+    profileIcon: {
+      type: String,
+      trim: true,
     },
     title: {
       type: String,
