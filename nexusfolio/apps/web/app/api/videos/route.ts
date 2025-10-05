@@ -23,15 +23,16 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
 
-    // Build query
-    const query: any = { userId: session.user.sub };
+    // Build query - show all public videos and user's own videos
+    const query: any = {
+      $or: [
+        { visibility: 'public' }, // Show all public videos
+        { userId: session.user.sub } // Show user's own videos regardless of visibility
+      ]
+    };
     
     if (category && category !== 'all') {
-      query.category = category;
-    }
-    
-    if (visibility && visibility !== 'all') {
-      query.visibility = visibility;
+      query.$and = [{ category }];
     }
 
     // Build sort object

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Video, Heart, MessageCircle, Share2, Plus, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Video, Heart, MessageCircle, Share2, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import "./video-player.css";
 
 interface VideoData {
@@ -23,6 +23,7 @@ interface VideoData {
     uploadedAt: string;
     viewCount: number;
     downloadCount: number;
+    likeCount: number;
   };
   createdAt: string;
 }
@@ -42,10 +43,31 @@ export default function NexusClient() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchVideos();
   }, [selectedCategory]);
+
+  const checkLikedVideos = async () => {
+    try {
+      const likedSet = new Set<string>();
+      
+      // Check each video's like status
+      for (const video of videos) {
+        const response = await fetch(`/api/likes?videoId=${video._id}`);
+        const result = await response.json();
+        
+        if (result.success && result.isLiked) {
+          likedSet.add(video._id);
+        }
+      }
+      
+      setLikedVideos(likedSet);
+    } catch (error) {
+      console.error('Error checking liked videos:', error);
+    }
+  };
 
   const fetchVideos = async () => {
     try {
@@ -66,6 +88,11 @@ export default function NexusClient() {
       if (result.success) {
         setVideos(result.data.videos); // Fixed: access videos from nested data structure
         console.log('Videos loaded:', result.data.videos.length); // Debug log
+        
+        // Check which videos are liked after videos are loaded
+        setTimeout(() => {
+          checkLikedVideos();
+        }, 100);
       } else {
         setError(result.error || 'Failed to fetch videos');
       }
@@ -110,6 +137,58 @@ export default function NexusClient() {
     }
   };
 
+  const handleLike = async (videoId: string) => {
+    try {
+      const isLiked = likedVideos.has(videoId);
+      
+      if (isLiked) {
+        // Unlike
+        const response = await fetch(`/api/likes?videoId=${videoId}`, {
+          method: 'DELETE',
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          setLikedVideos(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(videoId);
+            return newSet;
+          });
+          
+          // Update video like count
+          setVideos(prev => prev.map(video => 
+            video._id === videoId 
+              ? { ...video, metadata: { ...video.metadata, likeCount: result.likeCount } }
+              : video
+          ));
+        }
+      } else {
+        // Like
+        const response = await fetch('/api/likes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ videoId }),
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          setLikedVideos(prev => new Set(prev).add(videoId));
+          
+          // Update video like count
+          setVideos(prev => prev.map(video => 
+            video._id === videoId 
+              ? { ...video, metadata: { ...video.metadata, likeCount: result.likeCount } }
+              : video
+          ));
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -129,12 +208,6 @@ export default function NexusClient() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Nexus</h1>
             <p className="text-gray-600">Your video collection</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              <Plus className="w-4 h-4" />
-              Create Video
-            </button>
           </div>
         </div>
       </header>
@@ -280,9 +353,18 @@ export default function NexusClient() {
                         </span>
                       </div>
                       <div className="flex items-center gap-4">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                          <Heart className="w-4 h-4" />
-                          <span>Like</span>
+                        <button 
+                          onClick={() => handleLike(videos[currentVideoIndex]?._id || '')}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                            likedVideos.has(videos[currentVideoIndex]?._id || '') 
+                              ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                              : 'bg-gray-100 hover:bg-gray-200'
+                          }`}
+                        >
+                          <Heart className={`w-4 h-4 ${
+                            likedVideos.has(videos[currentVideoIndex]?._id || '') ? 'fill-current' : ''
+                          }`} />
+                          <span>{videos[currentVideoIndex]?.metadata.likeCount || 0}</span>
                         </button>
                         <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                           <MessageCircle className="w-4 h-4" />

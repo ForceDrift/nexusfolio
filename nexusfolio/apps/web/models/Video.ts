@@ -22,6 +22,7 @@ export interface IVideo extends Document {
     lastAccessed?: Date;
     viewCount?: number;
     downloadCount?: number;
+    likeCount?: number;
   };
   createdAt?: Date;
   updatedAt?: Date;
@@ -116,6 +117,11 @@ const VideoSchema: Schema = new Schema(
         type: Number,
         default: 0,
         min: [0, 'Download count cannot be negative'],
+      },
+      likeCount: {
+        type: Number,
+        default: 0,
+        min: [0, 'Like count cannot be negative'],
       },
     },
   },

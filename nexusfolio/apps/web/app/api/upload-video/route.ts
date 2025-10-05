@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       description: description?.trim(),
       category: category || 'other',
       tags: tagsArray,
-      visibility: visibility || 'private',
+      visibility: visibility || 'public',
       fileName: uploadResult.fileName!,
       originalFileName: file.name,
       fileSize: file.size,
@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
         uploadedAt: new Date(),
         viewCount: 0,
         downloadCount: 0,
+        likeCount: 0,
       },
     });
 
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
       url: uploadResult.url,
       fileName: uploadResult.fileName,
       message: 'Video uploaded and saved successfully!',
+      redirect: '/dashboard/nexus'
     });
   } catch (error) {
     console.error('Upload error:', error);
