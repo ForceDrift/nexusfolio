@@ -15,11 +15,14 @@ import {
   CheckCircle,
   Clock,
   Users,
-  MessageSquare
+  MessageSquare,
+  Brain,
+  Activity
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StockChart } from "@/components/stock-chart";
 
 interface StockData {
   symbol: string;
@@ -49,29 +52,106 @@ interface PurchaseOrder {
   id: string;
   symbol: string;
   quantity: number;
-  orderType: 'Market' | 'Limit' | 'Stop';
+  orderType: 'market' | 'limit' | 'stop';
   limitPrice?: number;
   stopPrice?: number;
-  status: 'Pending' | 'Filled' | 'Cancelled';
+  status: 'pending' | 'filled' | 'cancelled' | 'rejected';
   createdAt: string;
   filledAt?: string;
   filledPrice?: number;
+  totalAmount?: number;
+  portfolioId?: string;
+}
+
+interface AIAnalysis {
+  symbol: string;
+  sentiment: string;
+  volatility: string;
+  marketCapCategory: string;
+  volumeAnalysis: string;
+  technicalSignals: string[];
+  recommendation: string;
+  recommendationReason: string;
+  riskLevel: string;
+  priceTargets: {
+    shortTerm: number;
+    mediumTerm: number;
+    longTerm: number;
+  };
+  analysis: string;
+  timestamp: string;
 }
 
 interface CollaborativeStockDetailClientProps {
   symbol: string;
 }
 
+// Company Logo Component with fallback
+function CompanyLogo({ logoUrl, symbol, className }: { logoUrl?: string; symbol: string; className?: string }) {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(!!logoUrl);
+
+  useEffect(() => {
+    setImageError(false);
+    setImageLoading(!!logoUrl);
+  }, [logoUrl]);
+
+  if (!logoUrl || imageError) {
+    const getFallbackColor = (symbol: string) => {
+      const colors = [
+        'bg-blue-100 border-blue-200 text-blue-600',
+        'bg-green-100 border-green-200 text-green-600',
+        'bg-purple-100 border-purple-200 text-purple-600',
+        'bg-orange-100 border-orange-200 text-orange-600',
+        'bg-red-100 border-red-200 text-red-600',
+        'bg-cyan-100 border-cyan-200 text-cyan-600'
+      ];
+      return colors[symbol.charCodeAt(0) % colors.length];
+    };
+
+    return (
+      <div className={`rounded-full flex items-center justify-center border ${getFallbackColor(symbol)} ${className}`}>
+        <span className="text-xs font-semibold">{symbol.substring(0, 2)}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative ${className}`}>
+      {imageLoading && (
+        <div className="absolute inset-0 bg-gray-100 rounded-full animate-pulse" />
+      )}
+      <Image
+        src={logoUrl}
+        alt={`${symbol} logo`}
+        width={40}
+        height={40}
+        className={`rounded-full object-cover border border-gray-200 ${
+          imageLoading ? "opacity-0" : "opacity-100"
+        } transition-opacity duration-200`}
+        onLoad={() => setImageLoading(false)}
+        onError={() => {
+          setImageError(true);
+          setImageLoading(false);
+        }}
+      />
+    </div>
+  );
+}
+
 export default function CollaborativeStockDetailClient({ symbol }: CollaborativeStockDetailClientProps) {
   const router = useRouter();
   const [stockData, setStockData] = useState<StockData | null>(null);
   const [pennyStockInfo, setPennyStockInfo] = useState<PennyStockInfo | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [orderForm, setOrderForm] = useState({
     quantity: 100,
-    orderType: 'Market' as 'Market' | 'Limit' | 'Stop',
+    orderType: 'market' as 'market' | 'limit' | 'stop',
     limitPrice: 0,
     stopPrice: 0
   });
@@ -107,6 +187,12 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
           // Generate penny stock analysis
           const pennyAnalysis = generatePennyStockAnalysis(stock);
           setPennyStockInfo(pennyAnalysis);
+
+          // Fetch AI analysis
+          await fetchAIAnalysis(stock);
+
+          // Fetch orders for this symbol
+          await fetchOrders();
         } else {
           setError('Stock not found');
         }
@@ -120,6 +206,47 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
 
     fetchStockData();
   }, [symbol]);
+
+  const fetchAIAnalysis = async (stock: any) => {
+    try {
+      setIsLoadingAnalysis(true);
+      const response = await fetch('/api/ai-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          symbol: stock.symbol,
+          price: stock.price,
+          change: stock.change,
+          changePercent: stock.changePercent,
+          marketCap: stock.marketCap,
+          volume: stock.volume,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setAiAnalysis(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching AI analysis:', error);
+    } finally {
+      setIsLoadingAnalysis(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch(`/api/orders?symbol=${symbol}&portfolioId=default`);
+      const result = await response.json();
+      if (result.success) {
+        setOrders(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  };
 
   const generatePennyStockAnalysis = (stock: any): PennyStockInfo => {
     const price = stock.price;
@@ -187,42 +314,56 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
     setOrderResult(null);
 
     try {
-      // Simulate order placement
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const order: PurchaseOrder = {
-        id: Date.now().toString(),
-        symbol: stockData.symbol,
-        quantity: orderForm.quantity,
-        orderType: orderForm.orderType,
-        limitPrice: orderForm.orderType === 'Limit' ? orderForm.limitPrice : undefined,
-        stopPrice: orderForm.orderType === 'Stop' ? orderForm.stopPrice : undefined,
-        status: 'Pending',
-        createdAt: new Date().toISOString()
-      };
-
-      setOrderResult({
-        success: true,
-        message: `Order placed successfully! Order ID: ${order.id}`
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          symbol: stockData.symbol,
+          quantity: orderForm.quantity,
+          orderType: orderForm.orderType,
+          limitPrice: orderForm.orderType === 'limit' ? orderForm.limitPrice : undefined,
+          stopPrice: orderForm.orderType === 'stop' ? orderForm.stopPrice : undefined,
+          portfolioId: 'default',
+        }),
       });
 
-      // Reset form
-      setOrderForm({
-        quantity: 100,
-        orderType: 'Market',
-        limitPrice: 0,
-        stopPrice: 0
-      });
+      const result = await response.json();
 
-      setTimeout(() => {
-        setShowOrderModal(false);
-        setOrderResult(null);
-      }, 3000);
-
+      if (result.success) {
+        setOrderResult({
+          success: true,
+          message: `Order placed successfully! Order ID: ${result.data._id}`,
+        });
+        
+        // Refresh orders list
+        await fetchOrders();
+        
+        // Reset form
+        setOrderForm({
+          quantity: 100,
+          orderType: 'market',
+          limitPrice: 0,
+          stopPrice: 0,
+        });
+        
+        // Close modal after 2 seconds
+        setTimeout(() => {
+          setShowOrderModal(false);
+          setOrderResult(null);
+        }, 2000);
+      } else {
+        setOrderResult({
+          success: false,
+          message: result.error || 'Failed to place order',
+        });
+      }
     } catch (error) {
+      console.error('Error placing order:', error);
       setOrderResult({
         success: false,
-        message: 'Failed to place order. Please try again.'
+        message: 'Failed to place order. Please try again.',
       });
     } finally {
       setIsPlacingOrder(false);
@@ -325,19 +466,11 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
             <div className="flex items-center gap-3">
-              {stockData.logoUrl ? (
-                <Image
-                  src={stockData.logoUrl}
-                  alt={`${stockData.symbol} logo`}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                  {stockData.symbol.substring(0, 2)}
-                </div>
-              )}
+              <CompanyLogo
+                logoUrl={stockData.logoUrl}
+                symbol={stockData.symbol}
+                className="w-10 h-10"
+              />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">{stockData.symbol}</h1>
                 <p className="text-sm text-gray-600">{stockData.name}</p>
@@ -356,9 +489,94 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Stock Price Card */}
+      <main className="flex-1 p-6 overflow-auto bg-gray-50">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Stock Chart */}
+          <StockChart 
+            symbol={stockData.symbol}
+            price={stockData.price}
+            change={stockData.change}
+            changePercent={stockData.changePercent}
+          />
+
+          {/* AI Analysis */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Brain className="w-5 h-5 text-purple-600" />
+              <h2 className="text-lg font-semibold text-gray-900">AI Analysis</h2>
+              {isLoadingAnalysis && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+              )}
+            </div>
+            
+            {aiAnalysis ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Sentiment</p>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      aiAnalysis.sentiment.includes('bullish') ? 'bg-green-100 text-green-800' :
+                      aiAnalysis.sentiment.includes('bearish') ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {aiAnalysis.sentiment}
+                    </span>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Volatility</p>
+                    <p className="text-lg font-semibold text-gray-900">{aiAnalysis.volatility}</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Risk Level</p>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      aiAnalysis.riskLevel === 'low' ? 'bg-green-100 text-green-800' :
+                      aiAnalysis.riskLevel === 'high' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {aiAnalysis.riskLevel}
+                    </span>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Recommendation</p>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      aiAnalysis.recommendation === 'BUY' ? 'bg-green-100 text-green-800' :
+                      aiAnalysis.recommendation === 'SELL' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {aiAnalysis.recommendation}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <h3 className="font-semibold text-purple-900 mb-2">Analysis</h3>
+                  <p className="text-purple-800 text-sm">{aiAnalysis.analysis}</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Short Term Target</p>
+                    <p className="text-lg font-semibold text-gray-900">${aiAnalysis.priceTargets.shortTerm.toFixed(2)}</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Medium Term Target</p>
+                    <p className="text-lg font-semibold text-gray-900">${aiAnalysis.priceTargets.mediumTerm.toFixed(2)}</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Long Term Target</p>
+                    <p className="text-lg font-semibold text-gray-900">${aiAnalysis.priceTargets.longTerm.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">Loading AI analysis...</p>
+              </div>
+            )}
+          </div>
+
+          {/* Current Price Card */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Current Price</h2>
@@ -396,65 +614,56 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
             </div>
           </div>
 
-          {/* Penny Stock Analysis */}
-          {pennyStockInfo && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Target className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Penny Stock Analysis</h2>
-                {pennyStockInfo.isPennyStock && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-                    Penny Stock
-                  </span>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Risk Level</p>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(pennyStockInfo.riskLevel)}`}>
-                    {pennyStockInfo.riskLevel} Risk
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Volatility</p>
-                  <p className="text-lg font-semibold text-gray-900">{pennyStockInfo.volatility}%</p>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Liquidity</p>
-                  <p className="text-lg font-semibold text-gray-900">{pennyStockInfo.liquidity}</p>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Market Cap</p>
-                  <p className="text-lg font-semibold text-gray-900">{pennyStockInfo.marketCap}</p>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Recommendation</p>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRecommendationColor(pennyStockInfo.recommendation)}`}>
-                    {pennyStockInfo.recommendation}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold text-blue-900 mb-2">Analysis</h3>
-                <p className="text-blue-800 text-sm">{pennyStockInfo.analysis}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Order History Placeholder */}
+          {/* Order History */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="w-5 h-5 text-gray-600" />
               <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
             </div>
             
-            <div className="text-center py-8">
-              <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No recent orders for this stock</p>
-              <p className="text-sm text-gray-500">Place your first order to see it here</p>
-            </div>
+            {orders.length > 0 ? (
+              <div className="space-y-3">
+                {orders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full ${
+                        order.status === 'filled' ? 'bg-green-500' :
+                        order.status === 'pending' ? 'bg-yellow-500' :
+                        order.status === 'cancelled' ? 'bg-gray-500' :
+                        'bg-red-500'
+                      }`} />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {order.orderType.toUpperCase()} {order.quantity} shares @ {order.symbol}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {order.orderType === 'limit' && order.limitPrice && `Limit: $${order.limitPrice}`}
+                          {order.orderType === 'stop' && order.stopPrice && `Stop: $${order.stopPrice}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-sm font-medium ${
+                        order.status === 'filled' ? 'text-green-600' :
+                        order.status === 'pending' ? 'text-yellow-600' :
+                        'text-gray-600'
+                      }`}>
+                        {order.status.toUpperCase()}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No recent orders for this stock</p>
+                <p className="text-sm text-gray-500">Place your first order to see it here</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -484,13 +693,13 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
                   onChange={(e) => setOrderForm(prev => ({ ...prev, orderType: e.target.value as any }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="Market">Market Order</option>
-                  <option value="Limit">Limit Order</option>
-                  <option value="Stop">Stop Order</option>
+                  <option value="market">Market Order</option>
+                  <option value="limit">Limit Order</option>
+                  <option value="stop">Stop Order</option>
                 </select>
               </div>
               
-              {orderForm.orderType === 'Limit' && (
+              {orderForm.orderType === 'limit' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Limit Price</label>
                   <input
@@ -503,7 +712,7 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
                 </div>
               )}
               
-              {orderForm.orderType === 'Stop' && (
+              {orderForm.orderType === 'stop' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Stop Price</label>
                   <input

@@ -1,6 +1,7 @@
 import { auth0 } from "../../../lib/auth0";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
+import { CollaborationClient } from "./collaboration-client";
 
 export default async function CollaborationPage() {
   const session = await auth0.getSession();
@@ -24,14 +25,7 @@ export default async function CollaborationPage() {
 
         {/* Main Content */}
         <main className="flex-1 p-6 overflow-auto">
-          <div className="border-4 border-dashed border-border rounded-lg h-96 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Nexus Collaboration</h2>
-              <p className="text-muted-foreground">
-                Coming soon...
-              </p>
-            </div>
-          </div>
+          <CollaborationClient />
         </main>
       </div>
     </div>
