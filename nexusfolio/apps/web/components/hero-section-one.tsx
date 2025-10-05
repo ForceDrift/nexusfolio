@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 export function HeroSectionOne() {
   // Adjust this value to control video transparency (0.1 = very transparent, 1.0 = fully opaque)
@@ -9,6 +10,7 @@ export function HeroSectionOne() {
   
   const [scrollY, setScrollY] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -117,7 +119,10 @@ export function HeroSectionOne() {
           }}
           className="relative z-10 mt-8 flex items-center justify-center"
         >
-          <button className="flex items-center gap-2 bg-black px-8 py-3 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+          <button 
+            onClick={() => router.push('/dashboard')}
+            className="flex items-center gap-2 bg-black px-8 py-3 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+          >
             Get Started
             <svg 
               width="16" 
