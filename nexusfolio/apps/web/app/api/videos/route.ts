@@ -23,16 +23,11 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
 
-    // Build query - show all public videos and user's own videos
-    const query: any = {
-      $or: [
-        { visibility: 'public' }, // Show all public videos
-        { userId: session.user.sub } // Show user's own videos regardless of visibility
-      ]
-    };
+    // Build query - show ALL videos (both public and private)
+    const query: any = {};
     
     if (category && category !== 'all') {
-      query.$and = [{ category }];
+      query.category = category;
     }
 
     // Build sort object
@@ -52,6 +47,13 @@ export async function GET(request: NextRequest) {
         .lean(), // Return plain objects for better performance
       Video.countDocuments(query)
     ]);
+
+    console.log(`Found ${videos.length} videos out of ${totalCount} total videos`);
+    console.log('Videos:', videos.map(v => ({ id: v._id, title: v.title, userId: v.userId, visibility: v.visibility })));
+
+    // Debug: Check total videos in database
+    const allVideosCount = await Video.countDocuments({});
+    console.log(`Total videos in database: ${allVideosCount}`);
 
     // Calculate pagination info
     const totalPages = Math.ceil(totalCount / limit);

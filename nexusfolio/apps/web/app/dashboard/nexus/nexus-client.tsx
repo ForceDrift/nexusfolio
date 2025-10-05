@@ -47,6 +47,10 @@ export default function NexusClient() {
 
   useEffect(() => {
     fetchVideos();
+  }, []);
+
+  useEffect(() => {
+    fetchVideos();
   }, [selectedCategory]);
 
   const checkLikedVideos = async () => {
@@ -72,9 +76,11 @@ export default function NexusClient() {
   const fetchVideos = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       const params = new URLSearchParams({
         page: "1",
-        limit: "20",
+        limit: "50",
         category: selectedCategory,
         sortBy: "createdAt",
         sortOrder: "desc"
@@ -83,11 +89,8 @@ export default function NexusClient() {
       const response = await fetch(`/api/videos?${params}`);
       const result = await response.json();
 
-      console.log('API Response:', result); // Debug log
-
       if (result.success) {
-        setVideos(result.data.videos); // Fixed: access videos from nested data structure
-        console.log('Videos loaded:', result.data.videos.length); // Debug log
+        setVideos(result.data.videos);
         
         // Check which videos are liked after videos are loaded
         setTimeout(() => {
