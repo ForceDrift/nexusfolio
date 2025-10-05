@@ -25,6 +25,8 @@ interface ManualStockModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId?: string; // Add userId prop for portfolio management
+  portfolioId?: string; // Add portfolioId for collaborative stocks
+  onStockAdded?: (stockCode: string, notes?: string) => void; // Callback for collaborative stocks
 }
 
 // Company Logo Component with fallback
@@ -62,7 +64,7 @@ function CompanyLogo({ logoUrl, symbol, className }: { logoUrl?: string; symbol:
   );
 }
 
-export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalProps) {
+export function ManualStockModal({ isOpen, onClose, userId, portfolioId, onStockAdded }: ManualStockModalProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -192,35 +194,65 @@ export function ManualStockModal({ isOpen, onClose, userId }: ManualStockModalPr
   const handleAddToPortfolio = async () => {
     if (!selectedStock) return;
     
-    // Check if userId is provided
-    if (!userId) {
-      setAddToPortfolioResult({
-        success: false,
-        message: "User ID is required to add stocks to portfolio"
-      });
-      return;
-    }
-
     setIsAddingToPortfolio(true);
     setAddToPortfolioResult(null);
 
     try {
       console.log("Adding to portfolio:", selectedStock);
       
-      const result = await addUserStock(userId, selectedStock.symbol);
-      
-      setAddToPortfolioResult({
-        success: result.success,
-        message: result.message
-      });
+      // Check if this is for collaborative stocks
+      if (portfolioId && onStockAdded) {
+        // Add to collaborative portfolio
+        const response = await fetch('/api/collaborative-stocks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            stockCode: selectedStock.symbol,
+            portfolioId: portfolioId,
+            notes: `Added via stock search`
+          }),
+        });
 
-      if (result.success) {
-        // Close modal after successful addition
-        setTimeout(() => {
-          handleClose();
-          // Reload the page to refresh the portfolio
-          window.location.reload();
-        }, 1500);
+        const result = await response.json();
+        
+        setAddToPortfolioResult({
+          success: result.success,
+          message: result.message || (result.success ? 'Stock added to collaborative portfolio' : 'Failed to add stock')
+        });
+
+        if (result.success) {
+          onStockAdded(selectedStock.symbol, `Added via stock search`);
+          // Close modal after successful addition
+          setTimeout(() => {
+            handleClose();
+            // Reload the page to refresh the portfolio
+            window.location.reload();
+          }, 1500);
+        }
+      } else if (userId) {
+        // Add to personal portfolio
+        const result = await addUserStock(userId, selectedStock.symbol);
+        
+        setAddToPortfolioResult({
+          success: result.success,
+          message: result.message
+        });
+
+        if (result.success) {
+          // Close modal after successful addition
+          setTimeout(() => {
+            handleClose();
+            // Reload the page to refresh the portfolio
+            window.location.reload();
+          }, 1500);
+        }
+      } else {
+        setAddToPortfolioResult({
+          success: false,
+          message: "User ID or portfolio ID is required to add stocks"
+        });
       }
       
     } catch (error) {
