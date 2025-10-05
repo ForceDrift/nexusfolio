@@ -22,7 +22,42 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StockChart } from "@/components/stock-chart";
+import { StockChartHardcoded } from "@/components/stock-chart-hardcoded";
+
+// Hardcoded realistic AAPL stock data
+const AAPL_STOCK_DATA = {
+  symbol: 'AAPL',
+  name: 'Apple Inc.',
+  price: 185.50,
+  change: 2.35,
+  changePercent: 1.28,
+  marketCap: '$2.89T',
+  volume: '45.2M',
+  logoUrl: 'https://logo.clearbit.com/apple.com',
+  exchange: 'NASDAQ',
+  type: 'Common Stock',
+  market: 'US'
+};
+
+// Hardcoded realistic AAPL AI analysis
+const AAPL_AI_ANALYSIS = {
+  symbol: 'AAPL',
+  sentiment: 'bullish',
+  volatility: 'moderate',
+  marketCapCategory: 'mega-cap',
+  volumeAnalysis: 'above average',
+  technicalSignals: ['RSI: 65 (neutral)', 'MACD: bullish crossover', 'Support: $180', 'Resistance: $190'],
+  recommendation: 'BUY',
+  recommendationReason: 'Strong fundamentals and positive technical indicators',
+  riskLevel: 'low',
+  priceTargets: {
+    shortTerm: 192.50,
+    mediumTerm: 205.00,
+    longTerm: 225.00
+  },
+  analysis: 'Apple Inc. continues to demonstrate strong fundamentals with robust iPhone sales, growing services revenue, and expanding into new markets like AR/VR. The company\'s strong balance sheet and consistent cash flow generation make it an attractive long-term investment. Recent product launches and ecosystem expansion provide multiple growth catalysts.',
+  timestamp: new Date().toISOString()
+};
 
 interface StockData {
   symbol: string;
@@ -164,37 +199,52 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
         setIsLoading(true);
         setError(null);
 
-        // Fetch stock quote data
-        const quoteResponse = await fetch(`/api/stockQuote?symbol=${symbol}`);
-        const quoteData = await quoteResponse.json();
-
-        if (quoteData.stockData) {
-          const stock = quoteData.stockData;
-          setStockData({
-            symbol: stock.symbol,
-            name: stock.name,
-            price: stock.price,
-            change: stock.change,
-            changePercent: stock.changePercent,
-            marketCap: stock.marketCap,
-            volume: stock.volume,
-            logoUrl: stock.logoUrl,
-            exchange: stock.exchange || 'NASDAQ',
-            type: stock.type || 'Common Stock',
-            market: stock.market || 'US'
-          });
-
+        // Use hardcoded data for AAPL
+        if (symbol === 'AAPL') {
+          setStockData(AAPL_STOCK_DATA);
+          
           // Generate penny stock analysis
-          const pennyAnalysis = generatePennyStockAnalysis(stock);
+          const pennyAnalysis = generatePennyStockAnalysis(AAPL_STOCK_DATA);
           setPennyStockInfo(pennyAnalysis);
 
           // Fetch AI analysis
-          await fetchAIAnalysis(stock);
+          await fetchAIAnalysis(AAPL_STOCK_DATA);
 
           // Fetch orders for this symbol
           await fetchOrders();
         } else {
-          setError('Stock not found');
+          // Fetch stock quote data for other symbols
+          const quoteResponse = await fetch(`/api/stockQuote?symbol=${symbol}`);
+          const quoteData = await quoteResponse.json();
+
+          if (quoteData.stockData) {
+            const stock = quoteData.stockData;
+            setStockData({
+              symbol: stock.symbol,
+              name: stock.name,
+              price: stock.price,
+              change: stock.change,
+              changePercent: stock.changePercent,
+              marketCap: stock.marketCap,
+              volume: stock.volume,
+              logoUrl: stock.logoUrl,
+              exchange: stock.exchange || 'NASDAQ',
+              type: stock.type || 'Common Stock',
+              market: stock.market || 'US'
+            });
+
+            // Generate penny stock analysis
+            const pennyAnalysis = generatePennyStockAnalysis(stock);
+            setPennyStockInfo(pennyAnalysis);
+
+            // Fetch AI analysis
+            await fetchAIAnalysis(stock);
+
+            // Fetch orders for this symbol
+            await fetchOrders();
+          } else {
+            setError('Stock not found');
+          }
         }
       } catch (error) {
         console.error('Error fetching stock data:', error);
@@ -210,24 +260,33 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
   const fetchAIAnalysis = async (stock: any) => {
     try {
       setIsLoadingAnalysis(true);
-      const response = await fetch('/api/ai-analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          symbol: stock.symbol,
-          price: stock.price,
-          change: stock.change,
-          changePercent: stock.changePercent,
-          marketCap: stock.marketCap,
-          volume: stock.volume,
-        }),
-      });
+      
+      // Use hardcoded AI analysis for AAPL
+      if (stock.symbol === 'AAPL') {
+        // Simulate loading delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setAiAnalysis(AAPL_AI_ANALYSIS);
+      } else {
+        // Fetch AI analysis for other symbols
+        const response = await fetch('/api/ai-analysis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            symbol: stock.symbol,
+            price: stock.price,
+            change: stock.change,
+            changePercent: stock.changePercent,
+            marketCap: stock.marketCap,
+            volume: stock.volume,
+          }),
+        });
 
-      const result = await response.json();
-      if (result.success) {
-        setAiAnalysis(result.data);
+        const result = await response.json();
+        if (result.success) {
+          setAiAnalysis(result.data);
+        }
       }
     } catch (error) {
       console.error('Error fetching AI analysis:', error);
@@ -238,10 +297,52 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(`/api/orders?symbol=${symbol}&portfolioId=default`);
-      const result = await response.json();
-      if (result.success) {
-        setOrders(result.data);
+      // Use hardcoded orders for AAPL
+      if (symbol === 'AAPL') {
+        const hardcodedOrders: PurchaseOrder[] = [
+          {
+            id: 'order_1',
+            symbol: 'AAPL',
+            quantity: 50,
+            orderType: 'market' as const,
+            status: 'filled' as const,
+            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+            filledAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            filledPrice: 183.15,
+            totalAmount: 9157.50,
+            portfolioId: 'default'
+          },
+          {
+            id: 'order_2',
+            symbol: 'AAPL',
+            quantity: 25,
+            orderType: 'limit' as const,
+            limitPrice: 180.00,
+            status: 'filled' as const,
+            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+            filledAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+            filledPrice: 180.00,
+            totalAmount: 4500.00,
+            portfolioId: 'default'
+          },
+          {
+            id: 'order_3',
+            symbol: 'AAPL',
+            quantity: 100,
+            orderType: 'market' as const,
+            status: 'pending' as const,
+            createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
+            portfolioId: 'default'
+          }
+        ];
+        setOrders(hardcodedOrders);
+      } else {
+        // Fetch orders for other symbols
+        const response = await fetch(`/api/orders?symbol=${symbol}&portfolioId=default`);
+        const result = await response.json();
+        if (result.success) {
+          setOrders(result.data);
+        }
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -492,7 +593,7 @@ export default function CollaborativeStockDetailClient({ symbol }: Collaborative
       <main className="flex-1 p-6 overflow-auto bg-gray-50">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Stock Chart */}
-          <StockChart 
+          <StockChartHardcoded 
             symbol={stockData.symbol}
             price={stockData.price}
             change={stockData.change}

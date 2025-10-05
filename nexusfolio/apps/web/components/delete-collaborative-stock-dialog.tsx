@@ -1,14 +1,6 @@
 "use client";
-
 import { useState } from "react";
-import { AlertTriangle, X } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { AlertTriangle, X, Trash2 } from "lucide-react";
 
 interface DeleteCollaborativeStockDialogProps {
   isOpen: boolean;
@@ -19,19 +11,23 @@ interface DeleteCollaborativeStockDialogProps {
   buttonRect?: DOMRect;
 }
 
-export function DeleteCollaborativeStockDialog({
-  isOpen,
-  onClose,
-  stockSymbol,
+export function DeleteCollaborativeStockDialog({ 
+  isOpen, 
+  onClose, 
+  stockSymbol, 
   stockId,
   onStockDeleted,
   buttonRect
 }: DeleteCollaborativeStockDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleDelete = async () => {
-    setIsDeleting(true);
+    if (!stockId) return;
     
+    setIsDeleting(true);
+    setDeleteError(null);
+
     try {
       const response = await fetch(`/api/collaborative-stocks?stockId=${stockId}`, {
         method: 'DELETE',
@@ -43,55 +39,129 @@ export function DeleteCollaborativeStockDialog({
         onStockDeleted();
         onClose();
       } else {
-        alert('Failed to delete stock: ' + result.error);
+        setDeleteError(result.error || 'Failed to delete stock');
       }
     } catch (error) {
-      console.error('Error deleting collaborative stock:', error);
-      alert('Error deleting stock. Please try again.');
+      setDeleteError('An unexpected error occurred');
+      console.error('Delete collaborative stock error:', error);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="sm:max-w-md"
-        style={{
-          position: 'fixed',
-          top: buttonRect ? `${buttonRect.bottom + window.scrollY + 10}px` : '50%',
-          left: buttonRect ? `${buttonRect.left + window.scrollX}px` : '50%',
-          transform: buttonRect ? 'none' : 'translate(-50%, -50%)',
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-500" />
-            Remove Stock from Collaborative Portfolio
-          </DialogTitle>
-          <DialogDescription>
-            Are you sure you want to remove <strong>{stockSymbol}</strong> from the collaborative portfolio? 
-            This action will remove it for all collaborators.
-          </DialogDescription>
-        </DialogHeader>
+  const handleClose = () => {
+    if (!isDeleting) {
+      setDeleteError(null);
+      onClose();
+    }
+  };
 
-        <div className="flex gap-3 mt-6">
+  if (!isOpen) return null;
+
+  // Calculate position relative to button
+  const getPositionStyle = () => {
+    if (!buttonRect) {
+      return {
+        position: 'fixed' as const,
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+      };
+    }
+
+    // Position above the button with some offset
+    const top = buttonRect.top - 10;
+    const left = buttonRect.right - 320; // Position to the left of button
+    
+    return {
+      position: 'fixed' as const,
+      top: `${top}px`,
+      left: `${Math.max(10, left)}px`, // Ensure it doesn't go off screen
+      transform: 'none',
+    };
+  };
+
+  return (
+    <div className="fixed inset-0 z-50" onClick={handleClose}>
+      <div 
+        className="bg-white rounded-lg shadow-xl border border-gray-200 w-80"
+        style={getPositionStyle()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Remove Stock</h3>
+              <p className="text-sm text-gray-500">This action cannot be undone</p>
+            </div>
+          </div>
+          
+          {!isDeleting && (
+            <button
+              onClick={handleClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="px-6 pb-4">
+          <p className="text-gray-700 mb-4">
+            Are you sure you want to remove <span className="font-semibold text-gray-900">{stockSymbol}</span> from the collaborative portfolio?
+          </p>
+          
+          {deleteError && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <p className="text-sm text-red-700">{deleteError}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gray-50 rounded-md p-3 mb-6">
+            <p className="text-xs text-gray-600">
+              This will permanently remove <span className="font-medium">{stockSymbol}</span> from the collaborative portfolio for all collaborators. 
+              You can always add it back later if needed.
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="px-4 py-3 bg-gray-50 rounded-b-lg flex gap-2">
           <button
-            onClick={handleDelete}
+            onClick={handleClose}
             disabled={isDeleting}
-            className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isDeleting ? 'Removing...' : 'Remove Stock'}
-          </button>
-          <button
-            onClick={onClose}
-            disabled={isDeleting}
-            className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Cancel
           </button>
+          
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="px-3 py-1.5 text-xs text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+          >
+            {isDeleting ? (
+              <>
+                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Removing...
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-3 h-3" />
+                Remove
+              </>
+            )}
+          </button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
