@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ragService } from "@/lib/rag-service";
+import { RAGService } from "@/lib/rag-service";
+import { auth0 } from "@/lib/auth0";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,7 +23,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the user session
+    const session = await auth0.getSession();
+    const userId = session?.user?.sub;
+
     console.log("Starting RAG analysis for message:", message.substring(0, 50) + "...");
+    console.log("User ID:", userId ? "authenticated" : "anonymous");
+    
+    // Create RAG service instance with user ID
+    const ragService = new RAGService(userId);
     
     // Generate response using RAG system
     const ragResponse = await ragService.generateRAGResponse(message);
