@@ -11,6 +11,8 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
 [![Google AI](https://img.shields.io/badge/Google-Gemini-orange?style=for-the-badge&logo=google)](https://ai.google.dev/)
 [![Auth0](https://img.shields.io/badge/Auth0-Authentication-red?style=for-the-badge&logo=auth0)](https://auth0.com/)
+[![YouTube](https://img.shields.io/badge/YouTube-Demo%20Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/VxCGoeA4PEY)
+
 
 ## Overview
 
